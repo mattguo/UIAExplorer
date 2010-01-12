@@ -1,0 +1,4 @@
+1. dig the bug of FindBy handle and then automationId.
+2. Progress Bar
+3. Automation Id, AutomationElement, BoundingRectangle Viewer
+4. Red Rect.
