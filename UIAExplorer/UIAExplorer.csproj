@@ -53,6 +53,7 @@
       <HintPath>libs\MonoDevelop.Dock.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="wnck-sharp, Version=2.20.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Discriptors\PatternAvailableIndicator.cs" />
     <Compile Include="UserInterface\IDockPad.cs" />
     <Compile Include="UiaUtil\Log.cs" />
+    <Compile Include="UiaUtil\IconUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tasks.txt" />
@@ -77,5 +79,9 @@
     <Folder Include="UserInterface\" />
     <Folder Include="Discriptors\" />
     <Folder Include="UiaUtil\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UserInterface\MainMenu.xml" />
+    <EmbeddedResource Include="UserInterface\Toolbar.xml" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,5 @@
+<toolbar name="toolbar">
+	<toolitem name="refreshTree" action="refreshTree" />
+	<separator />
+	<toolitem name="exit" action="exit" />
+</toolbar>

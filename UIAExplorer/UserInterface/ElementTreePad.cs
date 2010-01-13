@@ -4,6 +4,7 @@ using Gtk;
 using System.IO;
 using System.Windows;
 using System.Threading;
+using Mono.Accessibility.UIAExplorer.UiaUtil;
 
 namespace Mono.Accessibility.UIAExplorer.UserInterface
 {
@@ -20,11 +21,20 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			elementStore = new TreeStore (
 				typeof (string), typeof (string),
 				typeof (int), typeof (string),
-				typeof (int));
+				typeof (int), typeof (string));
 
 			elementTree = new TreeView();
-			var column = elementTree.AppendColumn("Name", new Gtk.CellRendererText(), "text", 0);
+			Gtk.TreeViewColumn column = new Gtk.TreeViewColumn();
+			column.Title = "Name";
+			var iconRenderer = new Gtk.CellRendererPixbuf();
+			column.PackStart(iconRenderer, false);
+			column.AddAttribute(iconRenderer, "stock-id", 5);
+			var nameRenderer = new Gtk.CellRendererText();
+			column.PackStart(nameRenderer, true);
+			column.AddAttribute(nameRenderer, "text", 0);
 			column.Resizable = true;
+			elementTree.AppendColumn (column);
+
 			column = elementTree.AppendColumn("Type", new Gtk.CellRendererText(), "text", 1);
 			column.Resizable = true;
 			column = elementTree.AppendColumn("Children", new Gtk.CellRendererText(), "text", 2);
@@ -134,7 +144,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 							GetControlTypeDisplay(child.Cached.ControlType),
 							child.CachedChildren.Count,
 							child.Cached.AutomationId,
-							child.Cached.NativeWindowHandle);
+							child.Cached.NativeWindowHandle,
+							string.Empty);
 						InsertChildElements(child, iter);
 						Application.Invoke ((o, e) => progress.Fraction += progressStep);
 					}
@@ -161,7 +172,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 						GetControlTypeDisplay (child.Cached.ControlType),
 						child.CachedChildren.Count,
 						child.Cached.AutomationId,
-						parentWindowHandle);
+						parentWindowHandle,
+						string.Empty);
 				InsertChildElements(child, childIter);
 			}
 		}

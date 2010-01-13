@@ -5,76 +5,38 @@ using MonoDevelop.Components;
 using MonoDevelop.Components.Docking;
 using MonoDevelop.Components.PropertyGrid;
 using System.Windows.Automation;
+using System.IO;
 
 
 namespace Mono.Accessibility.UIAExplorer.UserInterface
 {	
 	class MainWindow : Gtk.Window
 	{
-		DockFrame dockFrame = null;
-		ElementTreePad treePad = null;
-		private bool keepBelow = false;
+		private DockFrame dockFrame = null;
+		private ElementTreePad treePad = null;
+		private ElementPropertyPad propPad = null;
+		private VBox box = null;
+		private VBox headBox = null;
+		private Statusbar statusbar = null;
+		private UIManager uim = null;
 
-		private MenuBar CreateMainMenuBar ()
+		private void OnKeepBelow (object sender, EventArgs args)
 		{
-			AccelGroup accel_group = new AccelGroup ();
-			this.AddAccelGroup (accel_group);
-			MenuBar menubar = new MenuBar ();
-			MenuItem item = null;
-
-			item = new MenuItem("_File");
-			item.Submenu = CreateFileMenu(accel_group);
-			menubar.Append(item);
-
-			item = new MenuItem("_View");
-			menubar.Append(item);
-			item.Submenu = CreateViewMenu(accel_group);
-
-			item = new MenuItem("_Tools");
-			menubar.Append(item);
-			item.Submenu = CreateToolsMenu(accel_group);
-
-			return menubar;
+			ToggleAction action = (ToggleAction)sender;
+			this.KeepBelow = action.Active;
 		}
 
-		private Menu CreateViewMenu(AccelGroup accel_group)
+		private void RefreshTree (object sender, EventArgs e)
 		{
-			Menu menu = new Menu ();
-			//todo, Pad view
-			//todo, property selection view
-			MenuItem item = new MenuItem("Toggle Keep Below");
-			item.Activated += delegate(object sender, EventArgs e) {
-				keepBelow = !keepBelow;
-				this.KeepBelow = keepBelow;
-			};
-			menu.Append (item);
-			return menu;
-		}
-
-		private Menu CreateFileMenu(AccelGroup accel_group)
-		{
-			Menu menu = new Menu ();
-			MenuItem item = new MenuItem ("E_xit");
-			item.Activated += delegate { Application.Quit (); };
-			menu.Append (item);
-			return menu;
-		}
-
-		private Menu CreateToolsMenu(AccelGroup accel_group)
-		{
-			Menu menu = new Menu();
-			MenuItem item = new MenuItem("Refresh");
-			
-			item.AddAccelerator ("activate", accel_group, (int)Gdk.Key.r, Gdk.ModifierType.ControlMask, AccelFlags.Visible);
-			item.Activated += delegate(object sender, EventArgs e) {
-				treePad.InitElementTree ();
-			};
-			menu.Append(item);
-			return menu;
+			treePad.InitElementTree ();
 		}
 
 		private void InitDockFrame ()
 		{
+			treePad = new ElementTreePad();
+			propPad = new ElementPropertyPad ();
+			treePad.SelectAutomationElement += (o, e) => propPad.AutomationElement = e.AutomationElement;
+
 			dockFrame = new DockFrame();
 			dockFrame.Homogeneous = false;
 
@@ -94,10 +56,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			left.DefaultVisible = true;
 			left.Visible = true;
 			left.DrawFrame = true;
-
-			treePad = new ElementTreePad();
 			left.Label = treePad.Title;
-			
 			left.Content = treePad.Control;
 
 			DockItem right = dockFrame.AddItem("elementProperty");
@@ -106,18 +65,9 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			right.DefaultLocation = "Document/Right";
 			right.DefaultVisible = true;
 			right.Visible = true;
-			right.Label = "Element Property";
 			right.DrawFrame = true;
-
-			PropertyGrid grid = new PropertyGrid();
-			//AutomationElementDescriptor d = new AutomationElementDescriptor(AutomationElement.RootElement);
-			//grid.CurrentObject = d;
-			treePad.SelectAutomationElement += (o, e) => grid.CurrentObject = 
-				new Mono.Accessibility.UIAExplorer.Discriptors.AutomationElementDescriptor(e.AutomationElement);
-
-			grid.ShowAll();
-
-			right.Content = grid;
+			right.Content = propPad.Control;
+			right.Label = propPad.Title;
 			right.Icon = "gtk-close";
 
 			DockItem rb = dockFrame.AddItem("outputPad");
@@ -129,11 +79,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			rb.DrawFrame = true;
 			rb.Content = new TextView();
 			rb.Icon = "gtk-new";
-			
-			
 		
 			dockFrame.CreateLayout( "uia-explorer", true );
-			
 			dockFrame.CurrentLayout = "uia-explorer";
 			dockFrame.HandlePadding = 0;
 			dockFrame.HandleSize = 10;
@@ -141,16 +88,52 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		public MainWindow () : base(Gtk.WindowType.Toplevel)
 		{
-			this.SetSizeRequest(800, 600);
-			VBox box1 = new VBox();
+			this.SetSizeRequest (800, 600);
+			box = new VBox ();
+			
+			//????
+			//todo, Pad view
+			//todo, property selection view
+			ActionEntry[] entries = new ActionEntry[] {
+				new ActionEntry ("fileMenu", null, "_File", null, null, null),
+				new ActionEntry ("exit", Stock.Quit, "E_xit", "<Alt>F4", null, (o,e) => Application.Quit ()),
+				new ActionEntry ("viewMenu", null, "_View", null, null, null),
+				new ActionEntry ("toolsMenu", null, "_Tools", null, null, null),
+				new ActionEntry ("refreshTree", Stock.Refresh, "Refresh Entire _Tree", "<Control>R", "",
+					RefreshTree)
+			};
 
-			MenuBar menubar = CreateMainMenuBar ();
-			box1.PackStart (menubar, false, false, 0);
+			ToggleActionEntry[] toggleEntries = new ToggleActionEntry[] {
+				new ToggleActionEntry ("keepBelow", null, "Window Keep Below", "<control>B",
+					"Toggle keep current window below, so that the AT client won't over the target application",
+					OnKeepBelow, false)
+			};
+
+			var group = new ActionGroup ("UiaExplorerActions");
+			group.Add (entries);
+			group.Add (toggleEntries);
+
+			uim = new UIManager ();
+			uim.InsertActionGroup (group, 0);
+			//???? I guess so, is it right?
+			this.AddAccelGroup (uim.AccelGroup);
+			uim.AddWidget += new AddWidgetHandler (OnWidgetAdd);
+			uim.AddUiFromResource ("Mono.Accessibility.UIAExplorer.UserInterface.MainMenu.xml");
+			uim.AddUiFromResource ("Mono.Accessibility.UIAExplorer.UserInterface.Toolbar.xml");
+
+//			MenuBar menubar = CreateMainMenuBar ();
+//			box.PackStart (menubar, false, false, 0);
+			headBox = new VBox ();
+			box.PackStart (headBox, false, true, 0);
 
 			InitDockFrame();
-			box1.PackStart (dockFrame, true, true, 0);
+			box.PackStart (dockFrame, true, true, 0);
+			
+			statusbar = new Statusbar ();
+			statusbar.Push (0, "hehe:");
+			box.PackStart (statusbar, false, false, 0);
 
-			this.Child = box1;
+			this.Child = box;
 			this.Title = "UIA Explorer";
 
 			this.DeleteEvent += OnDeleteEvent;
@@ -160,6 +143,12 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			this.ShowAll();
 		}
 
+		private void OnWidgetAdd (object obj, AddWidgetArgs args)
+		{
+			//string widgetName = args.Widget.Name;
+			headBox.PackStart (args.Widget, false, true, 0);
+		}
+		
 		protected void OnDeleteEvent (object sender, DeleteEventArgs a)
 		{
 			Application.Quit ();

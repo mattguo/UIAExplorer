@@ -2,13 +2,40 @@ using System;
 using System.Windows.Automation;
 using System.Collections.Generic;
 using Gtk;
+using Mono.Accessibility.UIAExplorer.Discriptors;
+using MonoDevelop.Components.PropertyGrid;
 
 namespace Mono.Accessibility.UIAExplorer.UserInterface
 {
-	public class ElementPropertyPad
+	public class ElementPropertyPad : IDockPad
 	{
 		public ElementPropertyPad ()
 		{
+			grid = new PropertyGrid ();
+			box = new VBox();
+			box.PackStart (grid, true, true, 0);
+			box.ShowAll ();
 		}
+
+		public string Title {
+			get { return "Element Properties/Patterns"; }
+		}
+
+		public Widget Control {
+			get { return box; }
+		}
+		
+		public AutomationElement AutomationElement
+		{
+			get { return element;}
+			set {
+				element = value;
+				grid.CurrentObject = new AutomationElementDescriptor (element);
+			}
+		}
+
+		private AutomationElement element = null;
+		private VBox box = null;
+		private PropertyGrid grid = null;
 	}
 }

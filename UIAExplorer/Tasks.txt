@@ -2,3 +2,7 @@
 2. Progress Bar
 3. Automation Id, AutomationElement, BoundingRectangle Viewer
 4. Red Rect.
+5. Action
+6. Stock Icons
+7. Tooltips
+8. Step-by-step load tree node.

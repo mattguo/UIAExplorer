@@ -1,0 +1,11 @@
+<menubar>
+	<menu name="fileMenu" action="fileMenu">
+		<menuitem name="exit" action="exit" />
+	</menu>
+	<menu name="viewMenu" action="viewMenu">
+		<menuitem name="keepBelow" action="keepBelow" />
+	</menu>
+	<menu name="toolsMenu" action="toolsMenu">
+		<menuitem name="refreshTree" action="refreshTree" />
+	</menu>
+</menubar>
