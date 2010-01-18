@@ -42,6 +42,7 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			wnd.KeepAbove = true;
 			wnd.AcceptFocus = false;
 			wnd.Sensitive = false;
+			wnd.SkipTaskbarHint = true;
 			return wnd;
 		}
 
