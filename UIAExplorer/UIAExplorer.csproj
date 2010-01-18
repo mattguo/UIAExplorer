@@ -70,6 +70,8 @@
     <Compile Include="UserInterface\IDockPad.cs" />
     <Compile Include="UiaUtil\Log.cs" />
     <Compile Include="UiaUtil\IconUtil.cs" />
+    <Compile Include="UiaUtil\Highlighter.cs" />
+    <Compile Include="UiaUtil\StringFormatter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tasks.txt" />

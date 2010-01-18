@@ -26,7 +26,24 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 
 		public override object GetValue (object component)
 		{
-			return ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property);
+			object val = ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property);
+
+			if (val == AutomationElement.NotSupported)
+				return "Not Supported";
+			if (val == null) {
+				Log.Error ("There shall not be any value equals to null.");
+				return "(null)";
+			}
+			else if (val is bool)
+				return val;
+			else if (val is ControlType)
+				return StringFormatter.Format ((ControlType) val);
+			else if (val is AutomationElement)
+				return StringFormatter.Format ((AutomationElement) val);
+			else if (val is Array)
+				return StringFormatter.Format ((Array) val);
+			else
+				return val.ToString ();
 		}
 
 		public override bool IsReadOnly {
@@ -62,16 +79,20 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 
 		public override Type PropertyType {
 			get {
+				// TODO currently we return every property as string or bool.
+				Type type = null;
 				try
 				{
-					var type = AutomationPropertyMetadata.PropertMetadata[property].Type;
-					return type;
+					type = AutomationPropertyMetadata.PropertMetadata[property].Type;
 				}
 				catch (Exception)
 				{
 					Console.Error.WriteLine("Can't get the type of {0}", property.ProgrammaticName);
 					throw;
 				}
+				if (type != typeof (bool))
+					type = typeof (string);
+				return type;
 			}
 		}
 

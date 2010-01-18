@@ -6,7 +6,7 @@ using MonoDevelop.Components.Docking;
 using MonoDevelop.Components.PropertyGrid;
 using System.Windows.Automation;
 using System.IO;
-
+using Mono.Accessibility.UIAExplorer.UiaUtil;
 
 namespace Mono.Accessibility.UIAExplorer.UserInterface
 {	
@@ -36,6 +36,14 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			treePad = new ElementTreePad();
 			propPad = new ElementPropertyPad ();
 			treePad.SelectAutomationElement += (o, e) => propPad.AutomationElement = e.AutomationElement;
+			treePad.SelectAutomationElement += (o, e) => {
+				if (!e.AutomationElement.Current.IsOffscreen) {
+					var rect = e.AutomationElement.Current.BoundingRectangle;
+					Highlighter h = new Highlighter (
+						(int)rect.Left, (int)rect.Top, (int)rect.Width, (int)rect.Height);
+					h.Flash (1000);
+				}
+			};
 
 			dockFrame = new DockFrame();
 			dockFrame.Homogeneous = false;

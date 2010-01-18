@@ -78,7 +78,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 						}
 						//?????
 						if (ae == null)
-							Console.Error.WriteLine ("!!!ae is null, {0}, {1}", handle, automationId);
+							Log.Error ("ae is null, {0:X}, {1}, {2}", handle, automationId,
+							          parentWindow.Current.Name);
 					}
 				}
 				
