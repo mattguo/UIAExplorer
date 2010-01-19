@@ -113,7 +113,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 			ToggleActionEntry[] toggleEntries = new ToggleActionEntry[] {
 				new ToggleActionEntry ("keepBelow", null, "Window Keep Below", "<control>B",
-					"Toggle keep current window below, so that the AT client won't over the target application",
+					"Toggle keep current window below, so that the AT client won't cover the target application",
 					OnKeepBelow, false)
 			};
 

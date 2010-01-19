@@ -66,12 +66,15 @@
     <Compile Include="UiaUtil\AutomationPropertyMetadata.cs" />
     <Compile Include="UserInterface\MainWindow.cs" />
     <Compile Include="Discriptors\AutomationPropertyDescriptor.cs" />
-    <Compile Include="Discriptors\PatternAvailableIndicator.cs" />
     <Compile Include="UserInterface\IDockPad.cs" />
     <Compile Include="UiaUtil\Log.cs" />
     <Compile Include="UiaUtil\IconUtil.cs" />
     <Compile Include="UiaUtil\Highlighter.cs" />
     <Compile Include="UiaUtil\StringFormatter.cs" />
+    <Compile Include="UserInterface\PatternMethodCell.cs" />
+    <Compile Include="Discriptors\PatternMethodDescriptor.cs" />
+    <Compile Include="UserInterface\Message.cs" />
+    <Compile Include="UiaUtil\AutomationMethodMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tasks.txt" />

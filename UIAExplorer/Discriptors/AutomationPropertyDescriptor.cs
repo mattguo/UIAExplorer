@@ -26,10 +26,10 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 
 		public override object GetValue (object component)
 		{
-			object val = ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property);
+			object val = ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property, true);
 
 			if (val == AutomationElement.NotSupported)
-				return "Not Supported";
+				return "(not supported)";
 			if (val == null) {
 				Log.Error ("There shall not be any value equals to null.");
 				return "(null)";

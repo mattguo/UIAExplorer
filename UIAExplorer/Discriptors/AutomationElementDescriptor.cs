@@ -36,12 +36,10 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 			if (element == null)
 				return new PropertyDescriptorCollection (new PropertyDescriptor [0]);
 
-			//????? Currently GetSupportedProperties is not supported.
 			List<PropertyDescriptor> discriptors = new List<PropertyDescriptor>();
-			List<AutomationPattern> supportedPatterns = new List<AutomationPattern> ();
 			foreach (AutomationPattern pattern in element.GetSupportedPatterns ()) {
-				discriptors.Add(new PatternAvailableIndicator (pattern));
-				supportedPatterns.Add (pattern);
+				foreach (var method in AutomationMethodMetadata.GetPatternMethods (pattern))
+					discriptors.Add(new PatternMethodDescriptor (element, pattern, method));
 				foreach (var property in AutomationPropertyMetadata.GetPatternProperties (pattern))
 					discriptors.Add(new AutomationPropertyDescriptor(property));
 			}
@@ -57,8 +55,9 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 
 			foreach (var catelog in AutomationPropertyMetadata.PredefinedCatelogs) {
 				foreach (var property in catelog.Properties) {
-					if (element.GetCurrentPropertyValue (property, true) != AutomationElement.NotSupported)
-						discriptors.Add(new AutomationPropertyDescriptor(property));
+					var meta = AutomationPropertyMetadata.GetMetadata (property);
+					if (meta != null && meta.Browsable)
+							discriptors.Add(new AutomationPropertyDescriptor(property));
 				}
 			}
 
