@@ -30,7 +30,7 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 		
 		public override string Category {
 			get {
-				return Automation.PatternName (pattern);
+				return Automation.PatternName (pattern) + " Pattern";
 			}
 		}
 

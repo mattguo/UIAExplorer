@@ -42,6 +42,8 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 				return StringFormatter.Format ((AutomationElement) val);
 			else if (val is Array)
 				return StringFormatter.Format ((Array) val);
+			else if (property == AutomationElement.NativeWindowHandleProperty)
+				return string.Format ("0x{0:X}", val);
 			else
 				return val.ToString ();
 		}
