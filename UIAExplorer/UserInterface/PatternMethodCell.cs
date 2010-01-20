@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.ComponentModel;
 using MonoDevelop.Components.PropertyGrid;
 using Mono.Accessibility.UIAExplorer.Discriptors;
+using Gtk;
 
 namespace Mono.Accessibility.UIAExplorer.UserInterface
 {
@@ -56,11 +58,33 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				if (parameters.Length == 0) {
 					invoke.Method.Invoke (patternObj, new object [0]);
 				} else {
-					//????? TODO get parameter inputs with a dialog...
-					Message.Warn ("Invoking methods with parameters is not implemented yet");
+					Dialog dialog = new Dialog ("Set Method Parameters", null,
+						DialogFlags.Modal | DialogFlags.DestroyWithParent,
+						Gtk.Stock.Ok, ResponseType.Ok,
+						Gtk.Stock.Cancel, ResponseType.Cancel);
+					var parameterSet = new ParameterSetDescriptor (invoke.Method);
+					PropertyGrid grid = new PropertyGrid();
+					grid.CurrentObject = parameterSet;
+					grid.ShowHelp = false;
+					dialog.VBox.PackStart (grid, true, true, 0);
+					grid.ShowAll ();
+					dialog.SetSizeRequest (360, 420);
+					ResponseType response = (ResponseType) dialog.Run ();
+					dialog.Destroy ();
+					if (response == ResponseType.Ok) {
+						object [] parameterValues = parameterSet.Parameters.Select(p => p.ParameterValue).ToArray ();
+						//output return value and out paras.
+						invoke.Method.Invoke (patternObj, parameterValues);
+					}
 				}
 			} catch (Exception ex) {
-				Message.Error ("Can't invoke this method: {0}", ex);
+				if (ex is System.Reflection.TargetInvocationException
+					&& ex.InnerException != null)
+					ex = ex.InnerException;
+				Message.Error ("{0}:{1}{2}",
+					ex.GetType().Name,
+					Environment.NewLine,
+					ex.Message);
 			}
 		}
 

@@ -75,6 +75,8 @@
     <Compile Include="Discriptors\PatternMethodDescriptor.cs" />
     <Compile Include="UserInterface\Message.cs" />
     <Compile Include="UiaUtil\AutomationMethodMetadata.cs" />
+    <Compile Include="Discriptors\ParameterSetDescriptor.cs" />
+    <Compile Include="Discriptors\ParameterDescriptor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tasks.txt" />

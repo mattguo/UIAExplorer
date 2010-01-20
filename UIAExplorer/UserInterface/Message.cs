@@ -22,7 +22,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		private static void RunModalDialog (Gtk.MessageType type, string format, params object[] args)
 		{
 			Gtk.MessageDialog md =
-				new Gtk.MessageDialog (null, Gtk.DialogFlags.Modal,
+				new Gtk.MessageDialog (null, Gtk.DialogFlags.Modal | Gtk.DialogFlags.DestroyWithParent,
 					type, Gtk.ButtonsType.Ok, format, args);
 			md.Run ();
 			md.Destroy ();

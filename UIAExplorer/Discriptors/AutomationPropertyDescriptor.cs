@@ -53,7 +53,7 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 				return true;
 			}
 		}
-		
+
 		public override string Category {
 			get {
 				return PropertyMetadata.Catelog.Name;
@@ -121,7 +121,7 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 
 		public override bool ShouldSerializeValue (object component)
 		{
-			return true;
+			return false;
 		}
 
 		public override int GetHashCode()
