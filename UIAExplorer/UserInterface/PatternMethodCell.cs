@@ -4,6 +4,7 @@ using System.ComponentModel;
 using MonoDevelop.Components.PropertyGrid;
 using Mono.Accessibility.UIAExplorer.Discriptors;
 using Gtk;
+using System.Reflection;
 
 namespace Mono.Accessibility.UIAExplorer.UserInterface
 {
@@ -57,6 +58,9 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				var patternObj = invoke.Element.GetCurrentPattern (invoke.Pattern);
 				if (parameters.Length == 0) {
 					invoke.Method.Invoke (patternObj, new object [0]);
+				} else if (IsParametersTooComplicate (parameters)) {
+					Message.Info ("The parameters of this method is too complicate to input," +
+						"you're suggested to invoke this method with scripting");
 				} else {
 					Dialog dialog = new Dialog ("Set Method Parameters", null,
 						DialogFlags.Modal | DialogFlags.DestroyWithParent,
@@ -73,12 +77,12 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					dialog.Destroy ();
 					if (response == ResponseType.Ok) {
 						object [] parameterValues = parameterSet.Parameters.Select(p => p.ParameterValue).ToArray ();
-						//output return value and out paras.
+						// TODO output return value and out paras.
 						invoke.Method.Invoke (patternObj, parameterValues);
 					}
 				}
 			} catch (Exception ex) {
-				if (ex is System.Reflection.TargetInvocationException
+				if (ex is TargetInvocationException
 					&& ex.InnerException != null)
 					ex = ex.InnerException;
 				Message.Error ("{0}:{1}{2}",
@@ -87,6 +91,20 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					ex.Message);
 			}
 		}
+
+		static bool IsParametersTooComplicate (ParameterInfo[] parameters)
+		{
+			bool canHandle = true;
+			foreach (ParameterInfo para in parameters) {
+				var type = para.ParameterType;
+				if (!(type.IsPrimitive || type.IsEnum || type == typeof(string))) {
+					canHandle = false;
+					break;
+				}
+			}
+			return !canHandle;
+		}
+
 
 		private object val = null;
 		public object Value { 
