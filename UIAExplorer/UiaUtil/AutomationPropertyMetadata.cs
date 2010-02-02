@@ -134,6 +134,7 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			AddPropertyMetadata(AutomationElement.IsWindowPatternAvailableProperty, patternCheckCatelog, typeof(bool), false);
 
 			AddPropertyMetadata(AutomationElement.NativeWindowHandleProperty, miscCatelog, typeof(int), true);
+			AddPropertyMetadata(AutomationElement.LabeledByProperty, miscCatelog, typeof(AutomationElement), true);
 			AddPropertyMetadata(AutomationElement.OrientationProperty, miscCatelog, typeof(OrientationType), false);
 			AddPropertyMetadata(AutomationElement.FrameworkIdProperty, miscCatelog, typeof(string), false);
 			AddPropertyMetadata(AutomationElement.ItemTypeProperty, miscCatelog, typeof(string), false);
@@ -141,17 +142,17 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			AddPropertyMetadata(AutomationElement.IsRequiredForFormProperty, miscCatelog, typeof(bool), false);
 
 			//DockPattern
-			var dockPatternCatelog = new AutomationPropertyCatelog("Dock");
+			var dockPatternCatelog = new AutomationPropertyCatelog("Dock Pattern");
 			patternCatelogs.Add(DockPattern.Pattern, dockPatternCatelog);
 			AddPropertyMetadata(DockPattern.DockPositionProperty, dockPatternCatelog, typeof(DockPosition), true);
 
 			//ExpandCollapsePattern
-			var expandCollapsePatternCatelog = new AutomationPropertyCatelog("ExpandCollapse");
+			var expandCollapsePatternCatelog = new AutomationPropertyCatelog("ExpandCollapse Pattern");
 			patternCatelogs.Add(ExpandCollapsePattern.Pattern, expandCollapsePatternCatelog);
 			AddPropertyMetadata(ExpandCollapsePattern.ExpandCollapseStateProperty, expandCollapsePatternCatelog, typeof(ExpandCollapseState), true);
 
 			//GridItemPattern
-			var gridItemPatternCatelog = new AutomationPropertyCatelog("GridItem");
+			var gridItemPatternCatelog = new AutomationPropertyCatelog("GridItem Pattern");
 			patternCatelogs.Add(GridItemPattern.Pattern, gridItemPatternCatelog);
 			AddPropertyMetadata(GridItemPattern.RowProperty, gridItemPatternCatelog, typeof(int), true);
 			AddPropertyMetadata(GridItemPattern.ColumnProperty, gridItemPatternCatelog, typeof(int), true);
@@ -160,23 +161,23 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			AddPropertyMetadata(GridItemPattern.ContainingGridProperty, gridItemPatternCatelog, typeof(AutomationElement), true);
 
 			//GridPattern
-			var gridPatternCatelog = new AutomationPropertyCatelog("Grid");
+			var gridPatternCatelog = new AutomationPropertyCatelog("Grid Pattern");
 			patternCatelogs.Add(GridPattern.Pattern, gridPatternCatelog);
 			AddPropertyMetadata(GridPattern.RowCountProperty, gridPatternCatelog, typeof(int), true);
 			AddPropertyMetadata(GridPattern.ColumnCountProperty, gridPatternCatelog, typeof(int), true);
 
 			//InvokePattern
-			var invokePatternCatelog = new AutomationPropertyCatelog("Invoke");
+			var invokePatternCatelog = new AutomationPropertyCatelog("Invoke Pattern");
 			patternCatelogs.Add(InvokePattern.Pattern, invokePatternCatelog);
 
 			//MultipleViewPattern
-			var multipleViewPatternCatelog = new AutomationPropertyCatelog("MultipleView");
+			var multipleViewPatternCatelog = new AutomationPropertyCatelog("MultipleView Pattern");
 			patternCatelogs.Add(MultipleViewPattern.Pattern, multipleViewPatternCatelog);
 			AddPropertyMetadata(MultipleViewPattern.CurrentViewProperty, multipleViewPatternCatelog, typeof(int), true);
 			AddPropertyMetadata(MultipleViewPattern.SupportedViewsProperty, multipleViewPatternCatelog, typeof(int[]), true);
 
 			//RangeValuePattern
-			var rangeValuePatternCatelog = new AutomationPropertyCatelog("RangeValue");
+			var rangeValuePatternCatelog = new AutomationPropertyCatelog("RangeValue Pattern");
 			patternCatelogs.Add(RangeValuePattern.Pattern, rangeValuePatternCatelog);
 			AddPropertyMetadata(RangeValuePattern.ValueProperty, rangeValuePatternCatelog, typeof(double), true);
 			AddPropertyMetadata(RangeValuePattern.IsReadOnlyProperty, rangeValuePatternCatelog, typeof(bool), true);
@@ -186,7 +187,7 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			AddPropertyMetadata(RangeValuePattern.SmallChangeProperty, rangeValuePatternCatelog, typeof(double), true);
 
 			//ScrollPattern
-			var scrollPatternCatelog = new AutomationPropertyCatelog("Scroll");
+			var scrollPatternCatelog = new AutomationPropertyCatelog("Scroll Pattern");
 			patternCatelogs.Add(ScrollPattern.Pattern, scrollPatternCatelog);
 			AddPropertyMetadata(ScrollPattern.HorizontalScrollPercentProperty, scrollPatternCatelog, typeof(double), true);
 			AddPropertyMetadata(ScrollPattern.HorizontalViewSizeProperty, scrollPatternCatelog, typeof(double), true);
@@ -196,59 +197,59 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			AddPropertyMetadata(ScrollPattern.VerticallyScrollableProperty, scrollPatternCatelog, typeof(bool), true);
 
 			//ScrollItemPattern
-			var scrollItemPatternCatelog = new AutomationPropertyCatelog("ScrollItem");
+			var scrollItemPatternCatelog = new AutomationPropertyCatelog("ScrollItem Pattern");
 			patternCatelogs.Add(ScrollItemPattern.Pattern, scrollItemPatternCatelog);
 
 			//SelectionItemPattern
-			var selectionItemPatternCatelog = new AutomationPropertyCatelog("SelectionItem");
+			var selectionItemPatternCatelog = new AutomationPropertyCatelog("SelectionItem Pattern");
 			patternCatelogs.Add(SelectionItemPattern.Pattern, selectionItemPatternCatelog);
 			AddPropertyMetadata(SelectionItemPattern.IsSelectedProperty, selectionItemPatternCatelog, typeof(bool), true);
 			AddPropertyMetadata(SelectionItemPattern.SelectionContainerProperty, selectionItemPatternCatelog, typeof(AutomationElement), true);
 
 			//SelectionPattern
-			var selectionPatternCatelog = new AutomationPropertyCatelog("Selection");
+			var selectionPatternCatelog = new AutomationPropertyCatelog("Selection Pattern");
 			patternCatelogs.Add(SelectionPattern.Pattern, selectionPatternCatelog);
 			AddPropertyMetadata(SelectionPattern.SelectionProperty, selectionPatternCatelog, typeof(AutomationElement[]), true);
 			AddPropertyMetadata(SelectionPattern.CanSelectMultipleProperty, selectionPatternCatelog, typeof(bool), true);
 			AddPropertyMetadata(SelectionPattern.IsSelectionRequiredProperty, selectionPatternCatelog, typeof(bool), true);
 
 			//TableItemPattern
-			var tableItemPatternCatelog = new AutomationPropertyCatelog("TableItem");
+			var tableItemPatternCatelog = new AutomationPropertyCatelog("TableItem Pattern");
 			patternCatelogs.Add(TableItemPattern.Pattern, tableItemPatternCatelog);
 			AddPropertyMetadata(TableItemPattern.RowHeaderItemsProperty, tableItemPatternCatelog, typeof(AutomationElement[]), true);
 			AddPropertyMetadata(TableItemPattern.ColumnHeaderItemsProperty, tableItemPatternCatelog, typeof(AutomationElement), true);
 
 			//TablePattern
-			var tablePatternCatelog = new AutomationPropertyCatelog("Table");
+			var tablePatternCatelog = new AutomationPropertyCatelog("Table Pattern");
 			patternCatelogs.Add(TablePattern.Pattern, tablePatternCatelog);
 			AddPropertyMetadata(TablePattern.RowHeadersProperty, tablePatternCatelog, typeof(AutomationElement[]), true);
 			AddPropertyMetadata(TablePattern.ColumnHeadersProperty, tablePatternCatelog, typeof(AutomationElement[]), true);
 			AddPropertyMetadata(TablePattern.RowOrColumnMajorProperty, tablePatternCatelog, typeof(RowOrColumnMajor), true);
 
 			//TextPattern
-			var textPatternCatelog = new AutomationPropertyCatelog("Text");
+			var textPatternCatelog = new AutomationPropertyCatelog("Text Pattern");
 			patternCatelogs.Add(TextPattern.Pattern, textPatternCatelog);
 
 			//TogglePattern
-			var togglePatternCatelog = new AutomationPropertyCatelog("Toggle");
+			var togglePatternCatelog = new AutomationPropertyCatelog("Toggle Pattern");
 			patternCatelogs.Add(TogglePattern.Pattern, togglePatternCatelog);
 			AddPropertyMetadata(TogglePattern.ToggleStateProperty, togglePatternCatelog, typeof(ToggleState), true);
 
 			//TransformPattern
-			var transformPatternCatelog = new AutomationPropertyCatelog("Transform");
+			var transformPatternCatelog = new AutomationPropertyCatelog("Transform Pattern");
 			patternCatelogs.Add(TransformPattern.Pattern, transformPatternCatelog);
 			AddPropertyMetadata(TransformPattern.CanMoveProperty, transformPatternCatelog, typeof(bool), true);
 			AddPropertyMetadata(TransformPattern.CanResizeProperty, transformPatternCatelog, typeof(bool), true);
 			AddPropertyMetadata(TransformPattern.CanRotateProperty, transformPatternCatelog, typeof(bool), true);
 
 			//ValuePattern
-			var valuePatternCatelog = new AutomationPropertyCatelog("Value");
+			var valuePatternCatelog = new AutomationPropertyCatelog("Value Pattern");
 			patternCatelogs.Add(ValuePattern.Pattern, valuePatternCatelog);
 			AddPropertyMetadata(ValuePattern.ValueProperty, valuePatternCatelog, typeof(string), true);
 			AddPropertyMetadata(ValuePattern.IsReadOnlyProperty, valuePatternCatelog, typeof(string), true);
 
 			//WindowPattern
-			var windowPatternCatelog = new AutomationPropertyCatelog("Window");
+			var windowPatternCatelog = new AutomationPropertyCatelog("Window Pattern");
 			patternCatelogs.Add(WindowPattern.Pattern, windowPatternCatelog);
 			AddPropertyMetadata(WindowPattern.CanMaximizeProperty, windowPatternCatelog, typeof(bool), true);
 			AddPropertyMetadata(WindowPattern.CanMinimizeProperty, windowPatternCatelog, typeof(bool), true);

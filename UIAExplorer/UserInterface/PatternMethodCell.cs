@@ -48,14 +48,15 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		{
 			this.Label = "Run";
 			this.SetSizeRequest (20, 20);
-			this.Clicked += HandleHandleClicked;
+			this.Clicked += HandleClicked;
 		}
 
-		void HandleHandleClicked (object sender, EventArgs e)
+		void HandleClicked (object sender, EventArgs e)
 		{
 			var parameters = invoke.Method.GetParameters ();
 			try {
 				var patternObj = invoke.Element.GetCurrentPattern (invoke.Pattern);
+				Console.WriteLine ("????? patternObj.GetType {0}", patternObj.GetType ());
 				if (parameters.Length == 0) {
 					invoke.Method.Invoke (patternObj, new object [0]);
 				} else if (IsParametersTooComplicate (parameters)) {
