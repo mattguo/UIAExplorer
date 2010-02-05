@@ -75,6 +75,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					grid.ShowAll ();
 					dialog.SetSizeRequest (360, 420);
 					ResponseType response = (ResponseType) dialog.Run ();
+					grid.CurrentObject = null;
 					dialog.Destroy ();
 					if (response == ResponseType.Ok) {
 						object [] parameterValues = parameterSet.Parameters.Select(p => p.ParameterValue).ToArray ();
