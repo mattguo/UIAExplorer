@@ -6,24 +6,34 @@ using System.IO;
 using System.Windows;
 using System.Threading;
 using Mono.Accessibility.UIAExplorer.UiaUtil;
+using System.Collections.Generic;
 
 namespace Mono.Accessibility.UIAExplorer.UserInterface
 {
 	public class ElementTreePad : IDockPad
 	{
+		#region Inner Types
+
+		enum ElementTreeStoreColumn
+		{
+			Name = 0,
+			ControlType = 1,
+			ChildCount = 2,
+			RuntimeId = 3,
+			ParentWindowHandle = 4,
+			IconStockId = 5,
+			IsChildUpdateNeeded = 6
+		}
+
+		#endregion
+
+		#region Constructor
+
 		public ElementTreePad ()
 		{
-			/* Name,
-			 * ControlType,
-			 * Child count
-			 * AutomationId,
-			 * Parent window's handle
-             * Icon stock-Id
-             * Is refreshing children of children needed.
-			 */
 			elementStore = new TreeStore (
 				typeof (string), typeof (string),
-				typeof (int), typeof (string),
+				typeof (int), typeof (int []),
 				typeof (int), typeof (string),
 				typeof (bool));
 
@@ -59,58 +69,56 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			InitElementTree ();
 		}
 
+		#endregion
+
+		#region Private Members
+		#endregion
+
+		#region Public Members
+		#endregion
+		
+
 		private void treeRowExpanded (object o, RowExpandedArgs args)
 		{
 			bool needRefreshingChildren = (bool) elementStore.GetValue (args.Iter, 6);
 			if (needRefreshingChildren) {
 				TreeIter iter;
-				elementStore.IterNthChild (out iter, 0);
+				elementStore.IterNthChild (out iter, args.Iter, 0);
 				do {
-					var ae = GetCachedElementFromIter (iter);
+					var runtimeId = (int [])elementStore.GetValue (iter, (int) ElementTreeStoreColumn.RuntimeId);
+					var name = elementStore.GetValue (iter, (int) ElementTreeStoreColumn.Name);
+					TStart (name + ", " + StringFormatter.Format (runtimeId));
+					var ae = GetElementFromIter (iter);
 					if (ae == null)
 						continue;
-					var childCount = ae.CachedChildren.Count;
-					elementStore.SetValue (args.Iter, 2, childCount);
-					elementStore.SetValue (args.Iter, 6, childCount > 0);
-					InsertChildElements (ae, iter);
+					TEnd ();
+					TStart ("step 1");
+					AutomationElementCollection children = ae.FindAll (
+						TreeScope.Children, Condition.TrueCondition);
+					var childCount = children.Count;
+					//elementStore.SetValue (iter, 2, childCount);
+					//elementStore.SetValue (iter, 6, childCount > 0);
+					TEnd ();
+					TStart ("child insert");
+					InsertChildElements (ae, iter, children);
+					TEnd ();
 				} while (elementStore.IterNext (ref iter));
 				elementStore.SetValue (args.Iter, 6, false);
 			}
 		}
 
-		private AutomationElement GetCachedElementFromIter (TreeIter iter)
-		{
-			CacheRequest request = new CacheRequest ();
-			request.TreeScope = TreeScope.Element | TreeScope.Children;
-			request.Add (AutomationElement.NameProperty);
-			request.Add (AutomationElement.ControlTypeProperty);
-			request.Add (AutomationElement.AutomationIdProperty);
-			request.Add (AutomationElement.NativeWindowHandleProperty);
-
-			return GetElementFromIter (iter, request);
-		}
-
-		private AutomationElement GetElementFromIter (TreeIter iter, CacheRequest request)
+		private AutomationElement GetElementFromIter (TreeIter iter)
 		{
 			AutomationElement ret = null;
-			string automationId = (string) elementStore.GetValue (iter, 3);
+			var runtimeId = (int []) elementStore.GetValue (iter, 3);
 			int handle = (int) elementStore.GetValue (iter, 4);
 			var parentWindow = AutomationElement.FromHandle (new IntPtr (handle));
-			if (parentWindow != null) {
-				IDisposable requestHandle = null;
-				if (request != null)
-					requestHandle = request.Activate ();
-				try {
-					ret = parentWindow.FindFirst (TreeScope.Subtree,
-						new PropertyCondition (AEIds.AutomationIdProperty, automationId));
-				} finally {
-					if (requestHandle != null)
-						requestHandle.Dispose ();
-				}
-			}
+			if (parentWindow != null)
+				ret = parentWindow.FindFirst (TreeScope.Subtree,
+					new PropertyCondition (AEIds.RuntimeIdProperty, runtimeId));
 			if (ret == null)
 				Log.Warn ("AutomationElement for TreeIter is null, {0:X}, {1}, {2}",
-					handle, automationId, parentWindow.Current.Name);
+					handle, StringFormatter.Format (runtimeId), parentWindow.Current.Name);
 			return ret;
 		}
 
@@ -121,19 +129,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				var selectedRows = elementTree.Selection.GetSelectedRows ();
 				if (selectedRows.Length > 0) {
 					TreeIter iter;
-					if (elementStore.GetIter (out iter, selectedRows [0])) {
-						string automationId = (string) elementStore.GetValue (iter, 3);
-						int handle = (int) elementStore.GetValue (iter, 4);
-						var parentWindow = AutomationElement.FromHandle (new IntPtr (handle));
-						if (parentWindow != null) {
-							ae = parentWindow.FindFirst (TreeScope.Subtree,
-								new PropertyCondition (AEIds.AutomationIdProperty, automationId));
-						}
-						//?????
-						if (ae == null)
-							Log.Error ("ae is null, {0:X}, {1}, {2}", handle, automationId,
-									  parentWindow.Current.Name);
-					}
+					if (elementStore.GetIter (out iter, selectedRows [0]))
+						ae = GetElementFromIter (iter);
 				}
 
 				SelectAutomationElement (elementTree, new SelectAutomationElementArgs (ae));
@@ -176,34 +173,27 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			TreePath path = startNode as TreePath;
 			if (path == null) {
 				elementStore.Clear ();
-				CacheRequest request = new CacheRequest ();
-				request.TreeScope = TreeScope.Element | TreeScope.Children;
-				request.Add (AutomationElement.NameProperty);
-				request.Add (AutomationElement.ControlTypeProperty);
-				request.Add (AutomationElement.AutomationIdProperty);
-				request.Add (AutomationElement.NativeWindowHandleProperty);
-
 				Condition cond = new PropertyCondition (AEIds.ProcessIdProperty,
 					System.Diagnostics.Process.GetCurrentProcess ().Id);
 				cond = new AndCondition (Automation.ControlViewCondition, new NotCondition (cond));
 
-				using (request.Activate ()) {
-					var rootElements = AutomationElement.RootElement.FindAll (TreeScope.Children, cond);
-					Application.Invoke ((o, e) => progress.Pulse ());
-					double progressStep = 1.0 / rootElements.Count;
-					foreach (AutomationElement child in rootElements) {
-						int childCount = child.CachedChildren.Count;
-						TreeIter iter = elementStore.AppendValues (
-							GetNameDisplay (child.Cached.Name),
-							GetControlTypeDisplay (child.Cached.ControlType),
-							childCount,
-							child.Cached.AutomationId,
-							child.Cached.NativeWindowHandle,
-							string.Empty,
-							childCount > 0);
-						InsertChildElements (child, iter);
-						Application.Invoke ((o, e) => progress.Fraction += progressStep);
-					}
+				var rootElements = AutomationElement.RootElement.FindAll (TreeScope.Children, cond);
+				Application.Invoke ((o, e) => progress.Pulse ());
+				double progressStep = 1.0 / rootElements.Count;
+				foreach (AutomationElement child in rootElements) {
+					AutomationElementCollection childrenOfChild = child.FindAll (
+						TreeScope.Children, Condition.TrueCondition);
+					int childCount = childrenOfChild.Count;
+					TreeIter iter = elementStore.AppendValues (
+						GetNameDisplay (child.Current.Name),
+						GetControlTypeDisplay (child.Current.ControlType),
+						childCount,
+						child.GetRuntimeId (),
+						child.Current.NativeWindowHandle,
+						string.Empty,
+						childCount > 0);
+					InsertChildElements (child, iter, childrenOfChild);
+					Application.Invoke ((o, e) => progress.Fraction += progressStep);
 				}
 			} else {
 				//???? TODO
@@ -211,19 +201,19 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			updateTreeNotify.WakeupMain ();
 		}
 
-		private void InsertChildElements (AutomationElement parent, TreeIter iter)
+		private void InsertChildElements (AutomationElement parent, TreeIter iter, AutomationElementCollection children)
 		{
 			int parentWindowHandle = (int) elementStore.GetValue (iter, 4);
-			foreach (AutomationElement child in parent.CachedChildren) {
-				object handleObj = child.GetCachedPropertyValue (
-					AutomationElement.NativeWindowHandleProperty, true);
+			foreach (AutomationElement child in children) {
+				object handleObj = child.GetCurrentPropertyValue (
+					AEIds.NativeWindowHandleProperty, true);
 				int handle = (handleObj != AutomationElement.NotSupported) ?
 					(int) handleObj : parentWindowHandle;
 				elementStore.AppendValues (iter,
-					GetNameDisplay (child.Cached.Name),
-					GetControlTypeDisplay (child.Cached.ControlType),
+					GetNameDisplay (child.Current.Name),
+					GetControlTypeDisplay (child.Current.ControlType),
 					0,
-					child.Cached.AutomationId,
+					child.GetRuntimeId (),
 					parentWindowHandle,
 					string.Empty, true);
 			}
@@ -245,5 +235,24 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		{
 			return ct.ProgrammaticName.Substring ("ControlType.".Length);
 		}
+
+		#region Tick Calc
+
+		DateTime tick;
+		string tickMessage;
+
+		private void TStart (string message)
+		{
+			tickMessage = message;
+			tick = DateTime.Now;
+		}
+
+		private void TEnd ()
+		{
+			double sec =  (DateTime.Now - tick).TotalSeconds;
+			Console.WriteLine ("{0}: {1} seconds", tickMessage, sec);
+		}
+
+		#endregion
 	}
 }
