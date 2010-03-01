@@ -103,8 +103,10 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					perfMon.TimerStart ("step 1");
 					AutomationElementCollection children = ae.FindAll (
 						TreeScope.Children, Condition.TrueCondition);
-					var childCount = children.Count;
 					perfMon.TimerEnd ();
+					elementStore.SetValue (iter,
+						(int) TreeStoreColumn.ChildCount,
+						children.Count);
 					perfMon.TimerStart ("child insert");
 					InsertChildElements (ae, iter, children);
 					perfMon.TimerEnd ();
@@ -148,14 +150,13 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				foreach (AutomationElement topLevel in rootElements) {
 					AutomationElementCollection children = topLevel.FindAll (
 						TreeScope.Children, Condition.TrueCondition);
-					int childCount = children.Count;
 					TreeIter iter = elementStore.AppendValues (
 						topLevel,
 						StringFormatter.Format (topLevel.Current.Name, 32),
 						StringFormatter.Format (topLevel.Current.ControlType),
-						childCount,
+						children.Count,
 						string.Empty,
-						childCount > 0);
+						true);
 					InsertChildElements (topLevel, iter, children);
 					Application.Invoke ((o, e) => progress.Fraction += progressStep);
 				}
