@@ -26,26 +26,27 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 
 		public override object GetValue (object component)
 		{
-			object val = ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property, true);
+            object val = ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property, true);
 
-			if (val == AutomationElement.NotSupported)
-				return "(not supported)";
-			if (val == null) {
-				Log.Error ("There shall not be any value equals to null.");
-				return "(null)";
-			}
-			else if (val is bool)
-				return val;
-			else if (val is ControlType)
-				return StringFormatter.Format ((ControlType) val);
-			else if (val is AutomationElement)
-				return StringFormatter.Format ((AutomationElement) val);
-			else if (val is Array)
-				return StringFormatter.Format ((Array) val);
-			else if (property == AutomationElement.NativeWindowHandleProperty)
-				return string.Format ("0x{0:X}", val);
-			else
-				return val.ToString ();
+            if (val == AutomationElement.NotSupported)
+                return "(not supported)";
+            if (val == null && property != AutomationElementIdentifiers.CultureProperty)
+            {
+                Log.Error("There shall not be any property value other than 'Culture' equals to null.");
+                return "(null)";
+            }
+            if (val.Equals(String.Empty))
+                return "(String.Empty)";
+            else if (val is ControlType)
+                return StringFormatter.Format((ControlType)val);
+            else if (val is AutomationElement)
+                return StringFormatter.Format((AutomationElement)val);
+            else if (val is Array)
+                return StringFormatter.Format((Array)val);
+            else if (property == AutomationElement.NativeWindowHandleProperty)
+                return string.Format("0x{0:X}", val);
+            else
+                return val.ToString();
 		}
 
 		public override bool IsReadOnly {
@@ -92,9 +93,10 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 					Console.Error.WriteLine("Can't get the type of {0}", property.ProgrammaticName);
 					throw;
 				}
-				if (type != typeof (bool))
-					type = typeof (string);
-				return type;
+                // Even if the property is bool (or other struct types), its value could be null or "Not Supported",
+                // and then can't be represented by the BooleanPropertyCell, therefor we'll use plain string to
+                // represent all kinds of values.
+                return typeof(string);
 			}
 		}
 

@@ -1,7 +1,7 @@
 1. dig the bug of FindBy handle and then automationId.
 2. Progress Bar
 3. Automation Id, AutomationElement, BoundingRectangle Viewer
-4. Red Rect.
+4. Fix Red Rect on Windows.
 5. Action
 6. Stock Icons
 7. Tooltips
@@ -10,3 +10,6 @@
 10 custom property editor
 
 is IsOffScreen right?
+
+
+ Fix Red Rect on Windows.
