@@ -125,7 +125,7 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 #endregion
 
 #region Private Fields
-		private static LogLevel currentLogLevel = LogLevel.Warning;
+		private static LogLevel currentLogLevel = LogLevel.Debug;
 #endregion
 	}
 }

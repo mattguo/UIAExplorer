@@ -13,3 +13,5 @@ is IsOffScreen right?
 
 
  Fix Red Rect on Windows.
+ 
+ On Windows, Sometimes "Step 1" in ElementTreePad will cost more than 10 seconds.

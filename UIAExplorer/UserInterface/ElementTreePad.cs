@@ -14,16 +14,27 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 	{
 		#region Inner Types
 
-		enum ElementTreeStoreColumn
+		enum TreeStoreColumn
 		{
-			Name = 0,
-			ControlType = 1,
-			ChildCount = 2,
-			RuntimeId = 3,
-			ParentWindowHandle = 4,
-			IconStockId = 5,
-			IsChildUpdateNeeded = 6
+			AutomationElement = 0,
+			Name = 1,
+			ControlType = 2,
+			ChildCount = 3,
+			IconStockId = 4,
+			IsChildUpdateNeeded = 5
 		}
+
+		#endregion
+
+		#region Private Fields
+
+		private VBox box = null;
+		private ProgressBar progress = null;
+		private TreeView elementTree = null;
+		private TreeStore elementStore = null;
+		//???? probably need lock here
+		private ThreadNotify updateTreeNotify = null;
+		private PerformanceMonitor perfMon = new PerformanceMonitor ();
 
 		#endregion
 
@@ -32,9 +43,11 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		public ElementTreePad ()
 		{
 			elementStore = new TreeStore (
-				typeof (string), typeof (string),
-				typeof (int), typeof (int []),
-				typeof (int), typeof (string),
+				typeof (AutomationElement),
+				typeof (string),
+				typeof (string),
+				typeof (int),
+				typeof (string),
 				typeof (bool));
 
 			elementTree = new TreeView ();
@@ -42,16 +55,16 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			column.Title = "Name";
 			var iconRenderer = new Gtk.CellRendererPixbuf ();
 			column.PackStart (iconRenderer, false);
-			column.AddAttribute (iconRenderer, "stock-id", 5);
+			column.AddAttribute (iconRenderer, "stock-id", (int) TreeStoreColumn.IconStockId);
 			var nameRenderer = new Gtk.CellRendererText ();
 			column.PackStart (nameRenderer, true);
-			column.AddAttribute (nameRenderer, "text", 0);
+			column.AddAttribute (nameRenderer, "text", (int) TreeStoreColumn.Name);
 			column.Resizable = true;
 			elementTree.AppendColumn (column);
 
-			column = elementTree.AppendColumn ("Type", new Gtk.CellRendererText (), "text", 1);
+			column = elementTree.AppendColumn ("Type", new Gtk.CellRendererText (), "text", (int) TreeStoreColumn.ControlType);
 			column.Resizable = true;
-			column = elementTree.AppendColumn ("Children", new Gtk.CellRendererText (), "text", 2);
+			column = elementTree.AppendColumn ("Children", new Gtk.CellRendererText (), "text", (int) TreeStoreColumn.ChildCount);
 			column.Resizable = true;
 			elementTree.CursorChanged += (o, e) => OnSelectAutomationElement ();
 			elementTree.RowExpanded += new RowExpandedHandler (treeRowExpanded);
@@ -71,55 +84,34 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		#endregion
 
-		#region Private Members
-		#endregion
-
-		#region Public Members
-		#endregion
-		
+		#region Private Methods
 
 		private void treeRowExpanded (object o, RowExpandedArgs args)
 		{
-			bool needRefreshingChildren = (bool) elementStore.GetValue (args.Iter, 6);
-			if (needRefreshingChildren) {
+			bool updateChildren = (bool) elementStore.GetValue (args.Iter, 
+				(int) TreeStoreColumn.IsChildUpdateNeeded);
+			if (updateChildren) {
 				TreeIter iter;
 				elementStore.IterNthChild (out iter, args.Iter, 0);
 				do {
-					var runtimeId = (int [])elementStore.GetValue (iter, (int) ElementTreeStoreColumn.RuntimeId);
-					var name = elementStore.GetValue (iter, (int) ElementTreeStoreColumn.Name);
-					TStart (name + ", " + StringFormatter.Format (runtimeId));
-					var ae = GetElementFromIter (iter);
+					perfMon.TimerStart ("step 0");
+					AutomationElement ae = (AutomationElement)
+						elementStore.GetValue (iter, (int) TreeStoreColumn.AutomationElement);
 					if (ae == null)
 						continue;
-					TEnd ();
-					TStart ("step 1");
+					perfMon.TimerEnd ();
+					perfMon.TimerStart ("step 1");
 					AutomationElementCollection children = ae.FindAll (
 						TreeScope.Children, Condition.TrueCondition);
 					var childCount = children.Count;
-					//elementStore.SetValue (iter, 2, childCount);
-					//elementStore.SetValue (iter, 6, childCount > 0);
-					TEnd ();
-					TStart ("child insert");
+					perfMon.TimerEnd ();
+					perfMon.TimerStart ("child insert");
 					InsertChildElements (ae, iter, children);
-					TEnd ();
+					perfMon.TimerEnd ();
 				} while (elementStore.IterNext (ref iter));
-				elementStore.SetValue (args.Iter, 6, false);
+				elementStore.SetValue (args.Iter,
+					(int) TreeStoreColumn.IsChildUpdateNeeded, false);
 			}
-		}
-
-		private AutomationElement GetElementFromIter (TreeIter iter)
-		{
-			AutomationElement ret = null;
-			var runtimeId = (int []) elementStore.GetValue (iter, 3);
-			int handle = (int) elementStore.GetValue (iter, 4);
-			var parentWindow = AutomationElement.FromHandle (new IntPtr (handle));
-			if (parentWindow != null)
-				ret = parentWindow.FindFirst (TreeScope.Subtree,
-					new PropertyCondition (AEIds.RuntimeIdProperty, runtimeId));
-			if (ret == null)
-				Log.Warn ("AutomationElement for TreeIter is null, {0:X}, {1}, {2}",
-					handle, StringFormatter.Format (runtimeId), parentWindow.Current.Name);
-			return ret;
 		}
 
 		private void OnSelectAutomationElement ()
@@ -130,15 +122,67 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				if (selectedRows.Length > 0) {
 					TreeIter iter;
 					if (elementStore.GetIter (out iter, selectedRows [0]))
-						ae = GetElementFromIter (iter);
+						ae = (AutomationElement)
+							elementStore.GetValue (iter, (int) TreeStoreColumn.AutomationElement);
 				}
 
 				SelectAutomationElement (elementTree, new SelectAutomationElementArgs (ae));
 			}
 		}
 
-		public event EventHandler<SelectAutomationElementArgs>
-			SelectAutomationElement;
+		private void RefreshTreeNode (object startNode)
+		{
+			//TODO ensure this method is never reentered
+			TreePath path = startNode as TreePath;
+			if (path == null) {
+				elementStore.Clear ();
+				Condition cond = new PropertyCondition (AEIds.ProcessIdProperty,
+					System.Diagnostics.Process.GetCurrentProcess ().Id);
+				cond = new AndCondition (Automation.ControlViewCondition, new NotCondition (cond));
+
+				var rootElements = AutomationElement.RootElement.FindAll (TreeScope.Children, cond);
+				Application.Invoke ((o, e) => progress.Pulse ());
+				
+				double progressStep = 1.0 / rootElements.Count;
+				
+				foreach (AutomationElement topLevel in rootElements) {
+					AutomationElementCollection children = topLevel.FindAll (
+						TreeScope.Children, Condition.TrueCondition);
+					int childCount = children.Count;
+					TreeIter iter = elementStore.AppendValues (
+						topLevel,
+						StringFormatter.Format (topLevel.Current.Name, 32),
+						StringFormatter.Format (topLevel.Current.ControlType),
+						childCount,
+						string.Empty,
+						childCount > 0);
+					InsertChildElements (topLevel, iter, children);
+					Application.Invoke ((o, e) => progress.Fraction += progressStep);
+				}
+			} else {
+				//???? TODO Refresh Tree Part
+			}
+			updateTreeNotify.WakeupMain ();
+		}
+
+		private void InsertChildElements (AutomationElement parent, TreeIter iter, AutomationElementCollection children)
+		{
+			foreach (AutomationElement child in children) {
+				elementStore.AppendValues (iter,
+					child,
+					StringFormatter.Format (child.Current.Name, 32),
+					StringFormatter.Format (child.Current.ControlType),
+					0,
+					string.Empty,
+					true);
+			}
+		}
+
+		#endregion
+
+		#region Public Members
+
+		public event EventHandler<SelectAutomationElementArgs> SelectAutomationElement;
 
 		public Widget Control
 		{
@@ -165,92 +209,6 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				progress.Text = "Complete";
 			});
 			thread.Start (null);
-		}
-
-		private void RefreshTreeNode (object startNode)
-		{
-			//TODO ensure this method is never reentered
-			TreePath path = startNode as TreePath;
-			if (path == null) {
-				elementStore.Clear ();
-				Condition cond = new PropertyCondition (AEIds.ProcessIdProperty,
-					System.Diagnostics.Process.GetCurrentProcess ().Id);
-				cond = new AndCondition (Automation.ControlViewCondition, new NotCondition (cond));
-
-				var rootElements = AutomationElement.RootElement.FindAll (TreeScope.Children, cond);
-				Application.Invoke ((o, e) => progress.Pulse ());
-				double progressStep = 1.0 / rootElements.Count;
-				foreach (AutomationElement child in rootElements) {
-					AutomationElementCollection childrenOfChild = child.FindAll (
-						TreeScope.Children, Condition.TrueCondition);
-					int childCount = childrenOfChild.Count;
-					TreeIter iter = elementStore.AppendValues (
-						GetNameDisplay (child.Current.Name),
-						GetControlTypeDisplay (child.Current.ControlType),
-						childCount,
-						child.GetRuntimeId (),
-						child.Current.NativeWindowHandle,
-						string.Empty,
-						childCount > 0);
-					InsertChildElements (child, iter, childrenOfChild);
-					Application.Invoke ((o, e) => progress.Fraction += progressStep);
-				}
-			} else {
-				//???? TODO
-			}
-			updateTreeNotify.WakeupMain ();
-		}
-
-		private void InsertChildElements (AutomationElement parent, TreeIter iter, AutomationElementCollection children)
-		{
-			int parentWindowHandle = (int) elementStore.GetValue (iter, 4);
-			foreach (AutomationElement child in children) {
-				object handleObj = child.GetCurrentPropertyValue (
-					AEIds.NativeWindowHandleProperty, true);
-				int handle = (handleObj != AutomationElement.NotSupported) ?
-					(int) handleObj : parentWindowHandle;
-				elementStore.AppendValues (iter,
-					GetNameDisplay (child.Current.Name),
-					GetControlTypeDisplay (child.Current.ControlType),
-					0,
-					child.GetRuntimeId (),
-					parentWindowHandle,
-					string.Empty, true);
-			}
-		}
-
-		private VBox box = null;
-		private ProgressBar progress = null;
-		private TreeView elementTree = null;
-		private TreeStore elementStore = null;
-		//???? probably need lock here
-		private ThreadNotify updateTreeNotify = null;
-
-		private static string GetNameDisplay (string elementName)
-		{
-			return string.Format ("\"{0}\"", elementName);
-		}
-
-		private static string GetControlTypeDisplay (ControlType ct)
-		{
-			return ct.ProgrammaticName.Substring ("ControlType.".Length);
-		}
-
-		#region Tick Calc
-
-		DateTime tick;
-		string tickMessage;
-
-		private void TStart (string message)
-		{
-			tickMessage = message;
-			tick = DateTime.Now;
-		}
-
-		private void TEnd ()
-		{
-			double sec =  (DateTime.Now - tick).TotalSeconds;
-			Console.WriteLine ("{0}: {1} seconds", tickMessage, sec);
 		}
 
 		#endregion
