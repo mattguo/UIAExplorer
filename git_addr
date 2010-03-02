@@ -1,0 +1,7 @@
+[Read]
+git://github.com/mattguo/UIAExplorer.git
+git://gitorious.org/uia-explorer/uia-explorer.git
+
+[Write]
+git@github.com:mattguo/UIAExplorer.git
+git@gitorious.org:uia-explorer/uia-explorer.git
