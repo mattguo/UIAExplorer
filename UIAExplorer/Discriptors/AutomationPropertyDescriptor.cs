@@ -32,7 +32,7 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
                 return "(not supported)";
             if (val == null && property != AutomationElementIdentifiers.CultureProperty)
             {
-                Log.Error("There shall not be any property value other than 'Culture' equals to null.");
+                Log.Error("{0} shall never be null", property.ProgrammaticName);
                 return "(null)";
             }
             if (val.Equals(String.Empty))
