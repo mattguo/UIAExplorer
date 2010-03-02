@@ -33,7 +33,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		private void InitDockFrame ()
 		{
-			treePad = new ElementTreePad();
+			treePad = new ElementTreePad(TreeWalker.RawViewWalker);
 			propPad = new ElementPropertyPad ();
 			treePad.SelectAutomationElement += (o, e) => propPad.AutomationElement = e.AutomationElement;
 			treePad.SelectAutomationElement += (o, e) => {

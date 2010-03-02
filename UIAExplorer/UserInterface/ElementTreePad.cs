@@ -32,6 +32,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		private ProgressBar progress = null;
 		private TreeView elementTree = null;
 		private TreeStore elementStore = null;
+		private TreeWalker treeWalker;
 		//???? probably need lock here
 		private ThreadNotify updateTreeNotify = null;
 		private PerformanceMonitor perfMon = new PerformanceMonitor ();
@@ -40,8 +41,10 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		#region Constructor
 
-		public ElementTreePad ()
+		public ElementTreePad (TreeWalker treeWalker)
 		{
+			this.treeWalker = treeWalker;
+
 			elementStore = new TreeStore (
 				typeof (AutomationElement),
 				typeof (string),
@@ -101,12 +104,11 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 						continue;
 					perfMon.TimerEnd ();
 					perfMon.TimerStart ("step 1");
-					AutomationElementCollection children = ae.FindAll (
-						TreeScope.Children, Condition.TrueCondition);
+					var children = GetChildElements (ae);
 					perfMon.TimerEnd ();
 					elementStore.SetValue (iter,
 						(int) TreeStoreColumn.ChildCount,
-						children.Count);
+						children.Length);
 					perfMon.TimerStart ("child insert");
 					InsertChildElements (ae, iter, children);
 					perfMon.TimerEnd ();
@@ -142,19 +144,18 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					System.Diagnostics.Process.GetCurrentProcess ().Id);
 				cond = new AndCondition (Automation.ControlViewCondition, new NotCondition (cond));
 
-				var rootElements = AutomationElement.RootElement.FindAll (TreeScope.Children, cond);
+				var rootElements = GetChildElements (AutomationElement.RootElement, cond);
 				Application.Invoke ((o, e) => progress.Pulse ());
 				
-				double progressStep = 1.0 / rootElements.Count;
+				double progressStep = 1.0 / rootElements.Length;
 				
 				foreach (AutomationElement topLevel in rootElements) {
-					AutomationElementCollection children = topLevel.FindAll (
-						TreeScope.Children, Condition.TrueCondition);
+					var children = GetChildElements (topLevel);
 					TreeIter iter = elementStore.AppendValues (
 						topLevel,
 						StringFormatter.Format (topLevel.Current.Name, 32),
 						StringFormatter.Format (topLevel.Current.ControlType),
-						children.Count,
+						children.Length,
 						string.Empty,
 						true);
 					InsertChildElements (topLevel, iter, children);
@@ -166,7 +167,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			updateTreeNotify.WakeupMain ();
 		}
 
-		private void InsertChildElements (AutomationElement parent, TreeIter iter, AutomationElementCollection children)
+		private void InsertChildElements (AutomationElement parent, TreeIter iter, AutomationElement [] children)
 		{
 			foreach (AutomationElement child in children) {
 				elementStore.AppendValues (iter,
@@ -177,6 +178,28 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					string.Empty,
 					true);
 			}
+		}
+
+		private AutomationElement [] GetChildElements (AutomationElement parent)
+		{
+			return GetChildElements (parent, null);
+		}
+
+		private AutomationElement [] GetChildElements (AutomationElement parent, Condition cond)
+		{
+			TreeWalker walker = null;
+			if (cond != null && cond != Condition.TrueCondition) {
+				Condition combinedCond = new AndCondition (cond, treeWalker.Condition);
+				walker = new TreeWalker (combinedCond);
+			} else
+				walker = treeWalker;
+			List<AutomationElement> children = new List<AutomationElement> ();
+			var child = walker.GetFirstChild (parent);
+			while (child != null) {
+				children.Add (child);
+				child = walker.GetNextSibling (child);
+			}
+			return children.ToArray ();
 		}
 
 		#endregion
@@ -192,7 +215,16 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		public string Title
 		{
-			get { return "Element Tree"; }
+			get {
+				if (treeWalker.Condition == Automation.RawViewCondition)
+					return "Raw View";
+				else if (treeWalker.Condition == Automation.ControlViewCondition)
+					return "Control View";
+				else if (treeWalker.Condition == Automation.ContentViewCondition)
+					return "Content View";
+				else
+					return "Custom View";
+			}
 		}
 
 		public void InitElementTree ()
