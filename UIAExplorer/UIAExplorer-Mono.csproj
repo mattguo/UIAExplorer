@@ -79,6 +79,8 @@
     <Compile Include="Discriptors\ParameterSetDescriptor.cs" />
     <Compile Include="Discriptors\ParameterDescriptor.cs" />
     <Compile Include="UiaUtil\PerformanceMonitor.cs" />
+    <Compile Include="UserInterface\ElementTestPad.cs" />
+    <Compile Include="UserInterface\ElementTreePad.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tasks.txt" />
