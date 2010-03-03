@@ -21,7 +21,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			ControlType = 2,
 			ChildCount = 3,
 			IconStockId = 4,
-			IsChildUpdateNeeded = 5
+			IsChildUpdateNeeded = 5,
+			Available = 6
 		}
 
 		#endregion
@@ -51,6 +52,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				typeof (string),
 				typeof (int),
 				typeof (string),
+				typeof (bool),
 				typeof (bool));
 
 			elementTree = new TreeView ();
@@ -91,6 +93,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		private void treeRowExpanded (object o, RowExpandedArgs args)
 		{
+			if (!CheckElementAvailability (args.Iter))
+				return;
 			bool updateChildren = (bool) elementStore.GetValue (args.Iter, 
 				(int) TreeStoreColumn.IsChildUpdateNeeded);
 			if (updateChildren) {
@@ -126,11 +130,41 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				if (selectedRows.Length > 0) {
 					TreeIter iter;
 					if (elementStore.GetIter (out iter, selectedRows [0]))
+						if (!CheckElementAvailability (iter))
+							return;
 						ae = (AutomationElement)
 							elementStore.GetValue (iter, (int) TreeStoreColumn.AutomationElement);
+						SelectAutomationElement (elementTree, new SelectAutomationElementArgs (ae));
 				}
+			}
+		}
 
-				SelectAutomationElement (elementTree, new SelectAutomationElementArgs (ae));
+		private bool CheckElementAvailability (TreeIter iter)
+		{
+			bool avaiable = (bool) elementStore.GetValue (iter, (int) TreeStoreColumn.Available);
+			if (avaiable) {
+				var ae = (AutomationElement)
+					elementStore.GetValue (iter, (int) TreeStoreColumn.AutomationElement);
+				try {
+					ae.GetCurrentPropertyValue (AEIds.NameProperty);
+				} catch (ElementNotAvailableException) {
+					avaiable = false;
+					DisableElement (iter);
+				}
+			}
+			return avaiable;
+		}
+
+		private void DisableElement (TreeIter rootIter)
+		{
+			elementStore.SetValue (rootIter, (int) TreeStoreColumn.Available, false);
+			elementStore.SetValue (rootIter, (int) TreeStoreColumn.IsChildUpdateNeeded, false);
+			elementStore.SetValue (rootIter, (int) TreeStoreColumn.IconStockId, "gtk-stop");
+			TreeIter iter;
+			if (elementStore.IterNthChild (out iter, rootIter, 0)) {
+				do {
+					DisableElement (iter);
+				} while (elementStore.IterNext (ref iter));
 			}
 		}
 
@@ -157,6 +191,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 						StringFormatter.Format (topLevel.Current.ControlType),
 						children.Length,
 						string.Empty,
+						true,
 						true);
 					InsertChildElements (topLevel, iter, children);
 					Application.Invoke ((o, e) => progress.Fraction += progressStep);
@@ -176,6 +211,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					StringFormatter.Format (child.Current.ControlType),
 					0,
 					string.Empty,
+					true,
 					true);
 			}
 		}
