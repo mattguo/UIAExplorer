@@ -55,6 +55,10 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="UIATestLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>libs\Win32\UIATestLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="UIAutomationTypes, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="UIAutomationClient, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
@@ -65,8 +69,10 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="UiaUtil\PerformanceMonitor.cs" />
     <Compile Include="UserInterface\ElementPropertyPad.cs" />
+    <Compile Include="UserInterface\ElementTestPad.cs" />
     <Compile Include="UserInterface\ElementTreePad.cs" />
     <Compile Include="Discriptors\AutomationElementDescriptor.cs" />
+    <Compile Include="UserInterface\ScriptingPad.cs" />
     <Compile Include="UserInterface\SelectAutomationElementArgs.cs" />
     <Compile Include="UiaUtil\AutomationPropertyCatelog.cs" />
     <Compile Include="UiaUtil\AutomationPropertyMetadata.cs" />
