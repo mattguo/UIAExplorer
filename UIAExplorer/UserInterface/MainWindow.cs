@@ -37,12 +37,18 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			propPad = new ElementPropertyPad ();
 			treePad.SelectAutomationElement += (o, e) => propPad.AutomationElement = e.AutomationElement;
 			treePad.SelectAutomationElement += (o, e) => {
-				if (!e.AutomationElement.Current.IsOffscreen) {
+				Highlighter h = null;
+				if (e.AutomationElement.Current.IsOffscreen)
+					h = new Highlighter (-1, -1, -1, -1);
+				else {
 					var rect = e.AutomationElement.Current.BoundingRectangle;
-					Highlighter h = new Highlighter (
-						(int)rect.Left, (int)rect.Top, (int)rect.Width, (int)rect.Height);
-					h.Flash (1000);
+					if (!rect.IsEmpty)
+						h = new Highlighter (
+							(int) rect.Left, (int) rect.Top, (int) rect.Width, (int) rect.Height);
+					else
+						h = new Highlighter (-1, -1, -1, -1);
 				}
+				h.Flash (1000);
 			};
 
 			dockFrame = new DockFrame();

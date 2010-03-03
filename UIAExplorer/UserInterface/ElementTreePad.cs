@@ -124,17 +124,17 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		private void OnSelectAutomationElement ()
 		{
-			if (SelectAutomationElement != null) {
-				AutomationElement ae = null;
-				var selectedRows = elementTree.Selection.GetSelectedRows ();
-				if (selectedRows.Length > 0) {
-					TreeIter iter;
-					if (elementStore.GetIter (out iter, selectedRows [0]))
-						if (!CheckElementAvailability (iter))
-							return;
-						ae = (AutomationElement)
+			var selectedRows = elementTree.Selection.GetSelectedRows ();
+			if (selectedRows.Length > 0) {
+				TreeIter iter;
+				if (elementStore.GetIter (out iter, selectedRows [0])) {
+					if (!CheckElementAvailability (iter))
+						return;
+					if (SelectAutomationElement != null) {
+						var ae = (AutomationElement)
 							elementStore.GetValue (iter, (int) TreeStoreColumn.AutomationElement);
 						SelectAutomationElement (elementTree, new SelectAutomationElementArgs (ae));
+					}
 				}
 			}
 		}
