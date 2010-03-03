@@ -51,16 +51,14 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 
 	public class Highlighter
 	{
-		private OpacityWindow left;
+		private OpacityWindow bound;
 		private bool outOfScreen = false;
-
-		private readonly int BORDER_WIDTH = 6;
 
 		public Highlighter (int x, int y, int w, int h)
 		{
 			outOfScreen = x < 0 && y < 0 && x + w < 0 && y + h < 0;
 			if (!outOfScreen) {
-				left = CreateSolidWindow (x, y, w, h);
+				bound = CreateSolidWindow (x, y, w, h);
 			}
 		}
 
@@ -76,12 +74,12 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 		{
 			if (!outOfScreen) {
 				GLib.Timeout.Add (milliseconds, () => {
-					left.Destroy ();
+					bound.Destroy ();
 					return true;
 				});
 
 				byte opacity = 0x80;
-				left.Show (opacity);
+				bound.Show (opacity);
 			}
 		}
 	}
