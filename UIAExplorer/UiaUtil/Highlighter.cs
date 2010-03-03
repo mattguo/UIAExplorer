@@ -8,6 +8,9 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 	class OpacityWindow : Window
 	{
 		private readonly Gdk.Color BORDER_COLOR = new Gdk.Color (255, 0, 0);
+#if !WIN32
+		private byte alpha = 255;
+#endif
 
 		public OpacityWindow ()
 			: base (WindowType.Popup)
@@ -19,8 +22,30 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			Sensitive = false;
 			SkipPagerHint = true;
 			SkipTaskbarHint = true;
+#if !WIN32
+			AppPaintable = true;
+			DoubleBuffered = false;
+#endif
 		}
 
+#if !WIN32
+		protected override bool OnExposeEvent (Gdk.EventExpose evnt)
+		{
+			using (Cairo.Context cc = Gdk.CairoHelper.Create (evnt.Window)) {
+				double colorR = (double) BORDER_COLOR.Red / (double) ushort.MaxValue;
+				double colorG = (double) BORDER_COLOR.Green / (double) ushort.MaxValue;
+				double colorB = (double) BORDER_COLOR.Blue / (double) ushort.MaxValue;
+				double colorA = (double)alpha / (double) byte.MaxValue;
+				cc.SetSourceRGBA (colorR, colorG, colorG, colorA);
+				int w, h;
+				GetSize (out w, out h);
+	            cc.Rectangle (0, 0, w, h);
+	            cc.Fill ();
+			}
+			return true;
+		}
+#endif
+		
 #if WIN32
 		public const int GWL_EXSTYLE = -20;
 		public const int WS_EX_LAYERED = 0x80000;
@@ -39,7 +64,6 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 		[DllImport ("libgdk-win32-2.0-0.dll")]
 		static extern IntPtr gdk_win32_drawable_get_handle (IntPtr handle);
 #endif
-		//set the window style to alpha appearance
 		public void Show (byte alpha)
 		{
 			this.ShowAll ();
@@ -53,6 +77,10 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 				}
 			}
 #else
+			if(GdkWindow != null) {
+				GdkWindow.SetBackPixmap (null, true);
+				this.alpha = alpha;
+			}
 #endif
 		}
 	}
