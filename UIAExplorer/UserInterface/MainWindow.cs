@@ -12,6 +12,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 {	
 	class MainWindow : Gtk.Window
 	{
+		private static MainWindow instace = new MainWindow ();
 		private DockFrame dockFrame = null;
 		private ElementTreePad rawTreePad = null;
 		private ElementPropertyPad propPad = null;
@@ -119,7 +120,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			h.Flash (1000);
 		}
 
-		public MainWindow () : base(Gtk.WindowType.Toplevel)
+		private MainWindow () : base(Gtk.WindowType.Toplevel)
 		{
 			this.SetSizeRequest (800, 600);
 			box = new VBox ();
@@ -187,6 +188,12 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			dockFrame.SaveLayouts (@"layout.txt");
 			Application.Quit ();
 			a.RetVal = true;
+		}
+
+		public static MainWindow Instace {
+			get {
+				return instace;
+			}
 		}
 	}
 }

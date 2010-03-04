@@ -12,8 +12,7 @@ namespace Mono.Accessibility.UIAExplorer
 		{
 			Application.Init ();
 			GLib.ExceptionManager.UnhandledException += HandleGLibExceptionManagerUnhandledException;
-			MainWindow win = new MainWindow ();
-			win.Show ();
+			MainWindow.Instace.Show ();
 			Application.Run ();
 		}
 
@@ -22,6 +21,7 @@ namespace Mono.Accessibility.UIAExplorer
 			Exception exp = args.ExceptionObject as Exception;
 			if (exp != null)
 				Log.Error (exp.ToString ());
+
 			else
 				Log.Error ("Non-DotNet error: {0}", args.ExceptionObject.ToString ());
 		}
