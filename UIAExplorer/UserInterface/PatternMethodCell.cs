@@ -56,7 +56,6 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			var parameters = invoke.Method.GetParameters ();
 			try {
 				var patternObj = invoke.Element.GetCurrentPattern (invoke.Pattern);
-				Console.WriteLine ("????? patternObj.GetType {0}", patternObj.GetType ());
 				if (parameters.Length == 0) {
 					invoke.Method.Invoke (patternObj, new object [0]);
 				} else if (IsParametersTooComplicate (parameters)) {

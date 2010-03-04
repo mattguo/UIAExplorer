@@ -123,8 +123,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		{
 			this.SetSizeRequest (800, 600);
 			box = new VBox ();
-			
-			//????
+
 			//todo, Pad view
 			//todo, property selection view
 			ActionEntry[] entries = new ActionEntry[] {
