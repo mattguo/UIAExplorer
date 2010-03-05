@@ -210,12 +210,13 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				
 				foreach (AutomationElement topLevel in rootElements) {
 					var children = GetChildElements (topLevel);
+					var controlType = topLevel.Current.ControlType;
 					TreeIter iter = elementStore.AppendValues (
 						topLevel,
 						StringFormatter.Format (topLevel.Current.Name, 32),
-						StringFormatter.Format (topLevel.Current.ControlType),
+						StringFormatter.Format (controlType),
 						children.Length,
-						string.Empty,
+						IconUtil.GetStockName (controlType),
 						true,
 						true);
 					InsertChildElements (topLevel, iter, children);
@@ -230,12 +231,13 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		private void InsertChildElements (AutomationElement parent, TreeIter iter, AutomationElement [] children)
 		{
 			foreach (AutomationElement child in children) {
+				var controlType = child.Current.ControlType;
 				elementStore.AppendValues (iter,
 					child,
 					StringFormatter.Format (child.Current.Name, 32),
-					StringFormatter.Format (child.Current.ControlType),
+					StringFormatter.Format (controlType),
 					0,
-					string.Empty,
+					IconUtil.GetStockName (controlType),
 					true,
 					true);
 			}

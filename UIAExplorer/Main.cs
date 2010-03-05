@@ -12,6 +12,7 @@ namespace Mono.Accessibility.UIAExplorer
 		{
 			Application.Init ();
 			GLib.ExceptionManager.UnhandledException += HandleGLibExceptionManagerUnhandledException;
+			IconUtil.Initialize ();
 			MainWindow.Instace.Show ();
 			Application.Run ();
 		}

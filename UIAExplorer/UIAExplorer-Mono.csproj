@@ -80,7 +80,6 @@
     <Compile Include="Discriptors\ParameterDescriptor.cs" />
     <Compile Include="UiaUtil\PerformanceMonitor.cs" />
     <Compile Include="UserInterface\ElementTestPad.cs" />
-    <Compile Include="UserInterface\ElementTreePad.cs" />
     <Compile Include="UserInterface\ScriptingPad.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +94,46 @@
   <ItemGroup>
     <EmbeddedResource Include="UserInterface\MainMenu.xml" />
     <EmbeddedResource Include="UserInterface\Toolbar.xml" />
+    <EmbeddedResource Include="Icons\invalid.png" />
+    <EmbeddedResource Include="Icons\ControlType\button.png" />
+    <EmbeddedResource Include="Icons\ControlType\calendar.png" />
+    <EmbeddedResource Include="Icons\ControlType\checkbox.png" />
+    <EmbeddedResource Include="Icons\ControlType\combobox.png" />
+    <EmbeddedResource Include="Icons\ControlType\datagrid.png" />
+    <EmbeddedResource Include="Icons\ControlType\dataitem.png" />
+    <EmbeddedResource Include="Icons\ControlType\document.png" />
+    <EmbeddedResource Include="Icons\ControlType\edit.png" />
+    <EmbeddedResource Include="Icons\ControlType\header.png" />
+    <EmbeddedResource Include="Icons\ControlType\headeritem.png" />
+    <EmbeddedResource Include="Icons\ControlType\hyperlink.png" />
+    <EmbeddedResource Include="Icons\ControlType\image.png" />
+    <EmbeddedResource Include="Icons\ControlType\list.png" />
+    <EmbeddedResource Include="Icons\ControlType\listitem.png" />
+    <EmbeddedResource Include="Icons\ControlType\menu.png" />
+    <EmbeddedResource Include="Icons\ControlType\menubar.png" />
+    <EmbeddedResource Include="Icons\ControlType\menuitem.png" />
+    <EmbeddedResource Include="Icons\ControlType\pane.png" />
+    <EmbeddedResource Include="Icons\ControlType\progressbar.png" />
+    <EmbeddedResource Include="Icons\ControlType\radiobutton.png" />
+    <EmbeddedResource Include="Icons\ControlType\scrollbar.png" />
+    <EmbeddedResource Include="Icons\ControlType\separator.png" />
+    <EmbeddedResource Include="Icons\ControlType\slider.png" />
+    <EmbeddedResource Include="Icons\ControlType\spinner.png" />
+    <EmbeddedResource Include="Icons\ControlType\splitbutton.png" />
+    <EmbeddedResource Include="Icons\ControlType\statusbar.png" />
+    <EmbeddedResource Include="Icons\ControlType\tab.png" />
+    <EmbeddedResource Include="Icons\ControlType\tabitem.png" />
+    <EmbeddedResource Include="Icons\ControlType\table.png" />
+    <EmbeddedResource Include="Icons\ControlType\text.png" />
+    <EmbeddedResource Include="Icons\ControlType\thumb.png" />
+    <EmbeddedResource Include="Icons\ControlType\titlebar.png" />
+    <EmbeddedResource Include="Icons\ControlType\toolbar.png" />
+    <EmbeddedResource Include="Icons\ControlType\tooltip.png" />
+    <EmbeddedResource Include="Icons\ControlType\tree.png" />
+    <EmbeddedResource Include="Icons\ControlType\treeitem.png" />
+    <EmbeddedResource Include="Icons\ControlType\window.png" />
+    <EmbeddedResource Include="Icons\ControlType\group.png" />
+    <EmbeddedResource Include="Icons\ControlType\custom.png" />
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>

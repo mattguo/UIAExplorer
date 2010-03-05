@@ -31,7 +31,7 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 				SetSourceColor (cc);
 				int w, h;
 				GetSize (out w, out h);
-	            cc.Rectangle (0, 0, w, h);
+				cc.Rectangle (0, 0, w, h);
 				cc.Fill ();
 			}
 			return true;

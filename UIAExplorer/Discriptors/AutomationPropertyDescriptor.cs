@@ -83,20 +83,20 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 		public override Type PropertyType {
 			get {
 				// TODO currently we return every property as string or bool.
-				Type type = null;
-				try
-				{
-					type = AutomationPropertyMetadata.PropertMetadata[property].Type;
-				}
-				catch (Exception)
-				{
-					Console.Error.WriteLine("Can't get the type of {0}", property.ProgrammaticName);
-					throw;
-				}
-                // Even if the property is bool (or other struct types), its value could be null or "Not Supported",
-                // and then can't be represented by the BooleanPropertyCell, therefor we'll use plain string to
-                // represent all kinds of values.
-                return typeof(string);
+//				Type type = null;
+//				try
+//				{
+//					type = AutomationPropertyMetadata.PropertMetadata[property].Type;
+//				}
+//				catch (Exception)
+//				{
+//					Console.Error.WriteLine("Can't get the type of {0}", property.ProgrammaticName);
+//					throw;
+//				}
+				// Even if the property is bool (or other struct types), its value could be null or "Not Supported",
+				// and then can't be represented by the BooleanPropertyCell, therefor we'll use plain string to
+				// represent all kinds of values.
+				return typeof(string);
 			}
 		}
 
