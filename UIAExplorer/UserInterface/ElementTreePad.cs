@@ -184,7 +184,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		{
 			elementStore.SetValue (rootIter, (int) TreeStoreColumn.Available, false);
 			elementStore.SetValue (rootIter, (int) TreeStoreColumn.IsChildUpdateNeeded, false);
-			elementStore.SetValue (rootIter, (int) TreeStoreColumn.IconStockId, "gtk-stop");
+			elementStore.SetValue (rootIter, (int) TreeStoreColumn.IconStockId, "invalid");
 			TreeIter iter;
 			if (elementStore.IterNthChild (out iter, rootIter, 0)) {
 				do {
