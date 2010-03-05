@@ -12,9 +12,12 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 {	
 	class MainWindow : Gtk.Window
 	{
+		private static MainWindow instace = new MainWindow ();
 		private DockFrame dockFrame = null;
-		private ElementTreePad treePad = null;
+		private ElementTreePad rawTreePad = null;
 		private ElementPropertyPad propPad = null;
+		private ElementTestPad testPad = null;
+		private ScriptingPad ipyScriptPad = null;
 		private VBox box = null;
 		private VBox headBox = null;
 		private Statusbar statusbar = null;
@@ -28,84 +31,100 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		private void RefreshTree (object sender, EventArgs e)
 		{
-			treePad.InitElementTree ();
+			rawTreePad.InitElementTree ();
 		}
 
 		private void InitDockFrame ()
 		{
-			treePad = new ElementTreePad(TreeWalker.RawViewWalker);
+			rawTreePad = new ElementTreePad(TreeWalker.RawViewWalker);
 			propPad = new ElementPropertyPad ();
-			treePad.SelectAutomationElement += (o, e) => propPad.AutomationElement = e.AutomationElement;
-			treePad.SelectAutomationElement += (o, e) => {
-				Highlighter h = null;
-				if (e.AutomationElement.Current.IsOffscreen)
-					h = new Highlighter (-1, -1, -1, -1);
-				else {
-					var rect = e.AutomationElement.Current.BoundingRectangle;
-					if (!rect.IsEmpty)
-						h = new Highlighter (
-							(int) rect.Left, (int) rect.Top, (int) rect.Width, (int) rect.Height);
-					else
-						h = new Highlighter (-1, -1, -1, -1);
-				}
-				h.Flash (1000);
-			};
+			testPad = new ElementTestPad ();
+			ipyScriptPad = new ScriptingPad ();
+
+			rawTreePad.SelectAutomationElement += (o, e) => propPad.AutomationElement = e.AutomationElement;
+			rawTreePad.SelectAutomationElement += (o, e) => testPad.AutomationElement = e.AutomationElement;
+			rawTreePad.SelectAutomationElement += (o, e) => ipyScriptPad.AutomationElement = e.AutomationElement;
+			rawTreePad.SelectAutomationElement += new EventHandler<SelectAutomationElementArgs> (ShowElementBound);
 
 			dockFrame = new DockFrame();
 			dockFrame.Homogeneous = false;
 
-			DockItem doc_item = dockFrame.AddItem("Document");
-			doc_item.Behavior = DockItemBehavior.Locked;
-			doc_item.Expand = true;
-			doc_item.DrawFrame = false;
-			doc_item.Label = "Documentos";
-			doc_item.Content = new Label("Leave for scripting/testing areas");
-			doc_item.DefaultVisible = true;
-			doc_item.Visible = true;
+			DockItem testDockItem = dockFrame.AddItem ("elementTest");
+			testDockItem.Behavior = DockItemBehavior.Sticky;
+			testDockItem.Label = testPad.Title;
+			testDockItem.Content = testPad.Control;
+			testDockItem.DrawFrame = true;
+			testDockItem.DefaultVisible = true;
+			testDockItem.Visible = true;
+			testDockItem.Expand = true;
+			// TODO set stocked icon.
+			//testDockItem.Icon = "";
 
-			DockItem left = dockFrame.AddItem("elementTree");
-			left.DefaultWidth = 250;
-			left.Behavior = DockItemBehavior.CantClose;
-			left.DefaultLocation = "Document/Left";
-			left.DefaultVisible = true;
-			left.Visible = true;
-			left.DrawFrame = true;
-			left.Label = treePad.Title;
-			left.Content = treePad.Control;
+			DockItem ipyScriptDockItem = dockFrame.AddItem ("ipyScripting");
+			ipyScriptDockItem.DefaultLocation = "elementTest/Center";
+			ipyScriptDockItem.Behavior = DockItemBehavior.Sticky;
+			ipyScriptDockItem.Label = ipyScriptPad.Title;
+			ipyScriptDockItem.Content = ipyScriptPad.Control;
+			ipyScriptDockItem.DrawFrame = true;
+			ipyScriptDockItem.DefaultVisible = true;
+			ipyScriptDockItem.Visible = true;
 
-			DockItem right = dockFrame.AddItem("elementProperty");
-			right.DefaultWidth = 250;
-			right.Behavior = DockItemBehavior.CantClose;
-			right.DefaultLocation = "Document/Right";
-			right.DefaultVisible = true;
-			right.Visible = true;
-			right.DrawFrame = true;
-			right.Content = propPad.Control;
-			right.Label = propPad.Title;
-			right.Icon = "gtk-close";
+			DockItem rawTreeDockItem = dockFrame.AddItem ("elementTree");
+			rawTreeDockItem.DefaultLocation = "elementTest/Left";
+			rawTreeDockItem.Behavior = DockItemBehavior.Locked;
+			rawTreeDockItem.Label = rawTreePad.Title;
+			rawTreeDockItem.Content = rawTreePad.Control;
+			rawTreeDockItem.DrawFrame = true;
+			rawTreeDockItem.DefaultVisible = true;
+			rawTreeDockItem.Visible = true;
+			rawTreeDockItem.DefaultWidth = 250;
 
-			DockItem rb = dockFrame.AddItem("outputPad");
-			rb.Behavior = DockItemBehavior.CantClose;
-			rb.DefaultLocation = "Document/Bottom";
-			rb.DefaultVisible = true;
-			rb.Visible = true;
-			rb.Label = "Output";
-			rb.DrawFrame = true;
-			rb.Content = new TextView();
-			rb.Icon = "gtk-new";
-		
+			DockItem propertyDockItem = dockFrame.AddItem ("elementProperty");
+			propertyDockItem.DefaultLocation = "elementTest/Right";
+			propertyDockItem.Behavior = DockItemBehavior.Sticky;
+			propertyDockItem.Label = propPad.Title;
+			propertyDockItem.Content = propPad.Control;
+			propertyDockItem.DrawFrame = true;
+			propertyDockItem.DefaultVisible = true;
+			propertyDockItem.Visible = true;
+			propertyDockItem.DefaultWidth = 250;
+
+			DockItem outputDockItem = dockFrame.AddItem ("output");
+			outputDockItem.DefaultLocation = "elementTest/Bottom";
+			outputDockItem.Behavior = DockItemBehavior.Sticky;
+			outputDockItem.Label = "Output";
+			outputDockItem.Content = new TextView ();
+			outputDockItem.DrawFrame = true;
+			outputDockItem.DefaultVisible = true;
+			outputDockItem.Visible = true;
+
 			dockFrame.CreateLayout( "uia-explorer", true );
 			dockFrame.CurrentLayout = "uia-explorer";
 			dockFrame.HandlePadding = 0;
-			dockFrame.HandleSize = 10;
+			dockFrame.HandleSize = 6;
 		}
 
-		public MainWindow () : base(Gtk.WindowType.Toplevel)
+		private void ShowElementBound (object sender, SelectAutomationElementArgs e)
+		{
+			Highlighter h = null;
+			if (e.AutomationElement.Current.IsOffscreen)
+				h = new Highlighter (-1, -1, -1, -1);
+			else {
+				var rect = e.AutomationElement.Current.BoundingRectangle;
+				if (!rect.IsEmpty)
+					h = new Highlighter (
+						(int) rect.Left, (int) rect.Top, (int) rect.Width, (int) rect.Height);
+				else
+					h = new Highlighter (-1, -1, -1, -1);
+			}
+			h.Flash (1000);
+		}
+
+		private MainWindow () : base(Gtk.WindowType.Toplevel)
 		{
 			this.SetSizeRequest (800, 600);
 			box = new VBox ();
-			
-			//????
+
 			//todo, Pad view
 			//todo, property selection view
 			ActionEntry[] entries = new ActionEntry[] {
@@ -165,8 +184,16 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		
 		protected void OnDeleteEvent (object sender, DeleteEventArgs a)
 		{
+			// TODO Load the saved layout at next startup.
+			dockFrame.SaveLayouts (@"layout.txt");
 			Application.Quit ();
 			a.RetVal = true;
+		}
+
+		public static MainWindow Instace {
+			get {
+				return instace;
+			}
 		}
 	}
 }

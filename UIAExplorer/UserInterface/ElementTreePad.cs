@@ -73,6 +73,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			column.Resizable = true;
 			elementTree.CursorChanged += (o, e) => OnSelectAutomationElement ();
 			elementTree.RowExpanded += new RowExpandedHandler (treeRowExpanded);
+			elementTree.ButtonReleaseEvent += new ButtonReleaseEventHandler (elementTree_ButtonReleaseEvent);
 
 			//TODO
 			progress = new ProgressBar ();
@@ -124,18 +125,42 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		private void OnSelectAutomationElement ()
 		{
-			var selectedRows = elementTree.Selection.GetSelectedRows ();
-			if (selectedRows.Length > 0) {
-				TreeIter iter;
-				if (elementStore.GetIter (out iter, selectedRows [0])) {
-					if (!CheckElementAvailability (iter))
-						return;
-					if (SelectAutomationElement != null) {
-						var ae = (AutomationElement)
-							elementStore.GetValue (iter, (int) TreeStoreColumn.AutomationElement);
-						SelectAutomationElement (elementTree, new SelectAutomationElementArgs (ae));
+			var selectedElement = SelectedAutomationElement;
+			if (selectedElement != null && SelectAutomationElement != null)
+				SelectAutomationElement (elementTree,
+					new SelectAutomationElementArgs (selectedElement));
+		}
+
+		private AutomationElement SelectedAutomationElement	{
+			get	{
+				var selectedRows = elementTree.Selection.GetSelectedRows ();
+				if (selectedRows.Length > 0) {
+					TreeIter iter;
+					if (elementStore.GetIter (out iter, selectedRows [0])) {
+						if (CheckElementAvailability (iter)) {
+							return (AutomationElement)
+								elementStore.GetValue (iter, (int) TreeStoreColumn.AutomationElement);
+						}
 					}
 				}
+				return null;
+			}
+		}
+		
+		//[GLib.ConnectBefore]
+		private void elementTree_ButtonReleaseEvent (object o, ButtonReleaseEventArgs args)
+		{
+			if (args.Event.Button == 3U) {
+				//right button
+				//Gtk.Menu jBox = new Gtk.Menu ();
+				//Gtk.MenuItem MenuItem1 = new MenuItem ("new job");
+				//jBox.Add (MenuItem1);
+				//jBox.ShowAll ();
+				//jBox.Popup ();
+
+				//MessageDialog dlg = new MessageDialog (MainWindow.Instace, DialogFlags.Modal, MessageType.Info, ButtonsType.Ok, "{0}",
+				//    SelectedAutomationElement.Current.Name);
+				//dlg.Run ();
 			}
 		}
 

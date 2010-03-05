@@ -79,6 +79,9 @@
     <Compile Include="Discriptors\ParameterSetDescriptor.cs" />
     <Compile Include="Discriptors\ParameterDescriptor.cs" />
     <Compile Include="UiaUtil\PerformanceMonitor.cs" />
+    <Compile Include="UserInterface\ElementTestPad.cs" />
+    <Compile Include="UserInterface\ElementTreePad.cs" />
+    <Compile Include="UserInterface\ScriptingPad.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tasks.txt" />
@@ -93,4 +96,14 @@
     <EmbeddedResource Include="UserInterface\MainMenu.xml" />
     <EmbeddedResource Include="UserInterface\Toolbar.xml" />
   </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <TextStylePolicy FileWidth="120" TabWidth="4" RemoveTrailingWhitespace="True" inheritsSet="Mono" inheritsScope="text/plain" scope="text/x-csharp" />
+          <CSharpFormattingPolicy SpacesAfterTypecast="True" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>

@@ -14,6 +14,7 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 		Error
 	}
 
+	// TODO Log to the output panel
 	public static class Log
 	{
 #region Public Properties
