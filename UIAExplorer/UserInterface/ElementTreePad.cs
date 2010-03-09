@@ -34,9 +34,9 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		private TreeView elementTree = null;
 		private TreeStore elementStore = null;
 		private TreeWalker treeWalker;
-		//???? probably need lock here
-		private ThreadNotify updateTreeNotify = null;
 		private PerformanceMonitor perfMon = new PerformanceMonitor ();
+
+		//need to barrier and lock elementStore
 
 		#endregion
 
@@ -94,12 +94,18 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		private void treeRowExpanded (object o, RowExpandedArgs args)
 		{
+			//TODO put expansion in a new thread, or the progress won't have any effect.
 			if (!CheckElementAvailability (args.Iter))
 				return;
 			bool updateChildren = (bool) elementStore.GetValue (args.Iter, 
 				(int) TreeStoreColumn.IsChildUpdateNeeded);
 			if (updateChildren) {
 				TreeIter iter;
+				var childCount = elementStore.IterNChildren (args.Iter);
+				if (childCount == 0)
+					return;
+				double progressStep = 1.0 / (double) childCount;
+				ResetProgress (true);
 				elementStore.IterNthChild (out iter, args.Iter, 0);
 				do {
 					perfMon.TimerStart ("step 0");
@@ -117,7 +123,9 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					perfMon.TimerStart ("child insert");
 					InsertChildElements (ae, iter, children);
 					perfMon.TimerEnd ();
+					AccumulateProgress (progressStep, "");
 				} while (elementStore.IterNext (ref iter));
+				SetProgress (1.0, "Completed");
 				elementStore.SetValue (args.Iter,
 					(int) TreeStoreColumn.IsChildUpdateNeeded, false);
 			}
@@ -204,7 +212,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				cond = new AndCondition (Automation.ControlViewCondition, new NotCondition (cond));
 
 				var rootElements = GetChildElements (AutomationElement.RootElement, cond);
-				Application.Invoke ((o, e) => progress.Pulse ());
+				ResetProgress(true);
 				
 				double progressStep = 1.0 / rootElements.Length;
 				
@@ -220,12 +228,16 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 						true,
 						true);
 					InsertChildElements (topLevel, iter, children);
-					Application.Invoke ((o, e) => progress.Fraction += progressStep);
+					AccumulateProgress (progressStep, "");
 				}
 			} else {
 				//???? TODO Refresh Tree Part
 			}
-			updateTreeNotify.WakeupMain ();
+			Application.Invoke ((o, e) => {
+				elementTree.Model = elementStore;
+				elementTree.Sensitive = true;
+			});
+			SetProgress (1.0, "Completed");
 		}
 
 		private void InsertChildElements (AutomationElement parent, TreeIter iter, AutomationElement [] children)
@@ -265,6 +277,25 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			return children.ToArray ();
 		}
 
+		private void ResetProgress (bool pulse)
+		{
+			Application.Invoke ((o, e) => {
+				progress.Fraction = 0.0;
+				if (pulse)
+					progress.Pulse ();
+			});
+		}
+
+		private void SetProgress (double fraction, string text)
+		{
+			Application.Invoke ((o, e) => { progress.Fraction = fraction; progress.Text = text; });
+		}
+
+		private void AccumulateProgress (double change, string text)
+		{
+			Application.Invoke ((o, e) => { progress.Fraction += change; progress.Text = text; });
+		}
+
 		#endregion
 
 		#region Public Members
@@ -298,12 +329,6 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			progress.Pulse ();
 			progress.Text = "Loading";
 			Thread thread = new Thread (new ParameterizedThreadStart (RefreshTreeNode));
-			updateTreeNotify = new ThreadNotify (() => {
-				elementTree.Model = elementStore;
-				elementTree.Sensitive = true;
-				progress.Fraction = 1.0;
-				progress.Text = "Complete";
-			});
 			thread.Start (null);
 		}
 
