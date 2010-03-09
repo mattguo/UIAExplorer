@@ -51,7 +51,7 @@ namespace Mono.Accessibility.UIAExplorer.UiaUtil
 			double colorG = (double) BORDER_COLOR.Green / (double) ushort.MaxValue;
 			double colorB = (double) BORDER_COLOR.Blue / (double) ushort.MaxValue;
 			double colorA = (double) alpha / (double) byte.MaxValue;
-			cc.SetSourceRGBA (colorR, colorG, colorG, colorA);
+			cc.SetSourceRGBA (colorR, colorG, colorB, colorA);
 		}
 	}
 

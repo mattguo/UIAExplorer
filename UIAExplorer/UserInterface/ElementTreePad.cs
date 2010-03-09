@@ -134,7 +134,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		private void OnSelectAutomationElement ()
 		{
 			var selectedElement = SelectedAutomationElement;
-			if (selectedElement != null && SelectAutomationElement != null)
+			if (selectedElement != null)
 				SelectAutomationElement (elementTree,
 					new SelectAutomationElementArgs (selectedElement));
 		}
