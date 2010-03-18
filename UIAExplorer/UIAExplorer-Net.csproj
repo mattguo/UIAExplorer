@@ -93,6 +93,12 @@
   <ItemGroup>
     <Content Include="Tasks.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IronPythonRepl\IronPythonRepl.csproj">
+      <Project>{9BE5A9DC-9A77-4370-BF0B-81BEEFC1AABB}</Project>
+      <Name>IronPythonRepl</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <EmbeddedResource Include="UserInterface\MainMenu.xml" />
