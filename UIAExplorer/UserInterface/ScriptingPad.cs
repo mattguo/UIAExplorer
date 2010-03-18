@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Automation;
 using AEIds = System.Windows.Automation.AutomationElementIdentifiers;
 using Gtk;
@@ -16,6 +16,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		private AutomationElement element = null;
 		private VBox box = null;
+		private IronPythonRepl.Shell ipyShell = null;
 
 		public AutomationElement AutomationElement
 		{
@@ -23,6 +24,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			set
 			{
 				element = value;
+				ipyShell.SetVariable ("acc", element);
 			}
 		}
 
@@ -33,8 +35,8 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 		public ScriptingPad ()
 		{
 			box = new VBox ();
-			Label lbl = new Label ("Doing UIA scripting here...");
-			box.PackStart (lbl, true, true, 0);
+			ipyShell = new IronPythonRepl.Shell ();
+			box.PackStart (ipyShell, true, true, 0);
 			box.ShowAll ();
 		}
 

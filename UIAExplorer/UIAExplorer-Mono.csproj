@@ -145,4 +145,10 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
+  <ItemGroup>
+    <ProjectReference Include="..\IronPythonRepl\IronPythonRepl.csproj">
+      <Project>{9BE5A9DC-9A77-4370-BF0B-81BEEFC1AABB}</Project>
+      <Name>IronPythonRepl</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

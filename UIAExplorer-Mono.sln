@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIAExplorer-Mono", "UIAExplorer\UIAExplorer-Mono.csproj", "{73A45CB2-D12F-4EF1-A47A-617CDAB65655}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IronPythonRepl", "IronPythonRepl\IronPythonRepl.csproj", "{9BE5A9DC-9A77-4370-BF0B-81BEEFC1AABB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,11 +15,15 @@ Global
 		{73A45CB2-D12F-4EF1-A47A-617CDAB65655}.Debug|x86.Build.0 = Debug|x86
 		{73A45CB2-D12F-4EF1-A47A-617CDAB65655}.Release|x86.ActiveCfg = Release|x86
 		{73A45CB2-D12F-4EF1-A47A-617CDAB65655}.Release|x86.Build.0 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+		{9BE5A9DC-9A77-4370-BF0B-81BEEFC1AABB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9BE5A9DC-9A77-4370-BF0B-81BEEFC1AABB}.Debug|x86.Build.0 = Debug|Any CPU
+		{9BE5A9DC-9A77-4370-BF0B-81BEEFC1AABB}.Release|x86.ActiveCfg = Release|Any CPU
+		{9BE5A9DC-9A77-4370-BF0B-81BEEFC1AABB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = UIAExplorer\UIAExplorer-Mono.csproj
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

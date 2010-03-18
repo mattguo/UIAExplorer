@@ -49,28 +49,28 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			dockFrame = new DockFrame();
 			dockFrame.Homogeneous = false;
 
-			DockItem testDockItem = dockFrame.AddItem ("elementTest");
-			testDockItem.Behavior = DockItemBehavior.Sticky;
-			testDockItem.Label = testPad.Title;
-			testDockItem.Content = testPad.Control;
-			testDockItem.DrawFrame = true;
-			testDockItem.DefaultVisible = true;
-			testDockItem.Visible = true;
-			testDockItem.Expand = true;
-			// TODO set stocked icon.
-			//testDockItem.Icon = "";
-
 			DockItem ipyScriptDockItem = dockFrame.AddItem ("ipyScripting");
-			ipyScriptDockItem.DefaultLocation = "elementTest/Center";
 			ipyScriptDockItem.Behavior = DockItemBehavior.Sticky;
 			ipyScriptDockItem.Label = ipyScriptPad.Title;
 			ipyScriptDockItem.Content = ipyScriptPad.Control;
 			ipyScriptDockItem.DrawFrame = true;
 			ipyScriptDockItem.DefaultVisible = true;
 			ipyScriptDockItem.Visible = true;
+			ipyScriptDockItem.Expand = true;
+
+			DockItem testDockItem = dockFrame.AddItem ("elementTest");
+			testDockItem.DefaultLocation = "ipyScripting/Center";
+			testDockItem.Behavior = DockItemBehavior.Sticky;
+			testDockItem.Label = testPad.Title;
+			testDockItem.Content = testPad.Control;
+			testDockItem.DrawFrame = true;
+			testDockItem.DefaultVisible = true;
+			testDockItem.Visible = true;
+			// TODO set stocked icon.
+			//testDockItem.Icon = "";
 
 			DockItem rawTreeDockItem = dockFrame.AddItem ("elementTree");
-			rawTreeDockItem.DefaultLocation = "elementTest/Left";
+			rawTreeDockItem.DefaultLocation = "ipyScripting/Left";
 			rawTreeDockItem.Behavior = DockItemBehavior.Locked;
 			rawTreeDockItem.Label = rawTreePad.Title;
 			rawTreeDockItem.Content = rawTreePad.Control;
@@ -80,7 +80,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			rawTreeDockItem.DefaultWidth = 250;
 
 			DockItem propertyDockItem = dockFrame.AddItem ("elementProperty");
-			propertyDockItem.DefaultLocation = "elementTest/Right";
+			propertyDockItem.DefaultLocation = "ipyScripting/Right";
 			propertyDockItem.Behavior = DockItemBehavior.Sticky;
 			propertyDockItem.Label = propPad.Title;
 			propertyDockItem.Content = propPad.Control;
@@ -90,7 +90,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			propertyDockItem.DefaultWidth = 250;
 
 			DockItem outputDockItem = dockFrame.AddItem ("output");
-			outputDockItem.DefaultLocation = "elementTest/Bottom";
+			outputDockItem.DefaultLocation = "ipyScripting/Bottom";
 			outputDockItem.Behavior = DockItemBehavior.Sticky;
 			outputDockItem.Label = "Output";
 			outputDockItem.Content = new TextView ();
