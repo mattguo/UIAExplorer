@@ -1,3 +1,7 @@
 # binary output
 /UIAExplorer/bin
 /UIAExplorer/obj
+/IronPythonRepl/bin
+/IronPythonRepl/obj
+*.pidb
+*~
