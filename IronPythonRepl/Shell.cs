@@ -28,7 +28,7 @@ namespace IronPythonRepl
 		private HistoryManager history = new HistoryManager ();
 		private TextMark endOfLastProcessing;
 
-		public Shell ()
+		public Shell (Assembly[] assembliesToLoad, string initScript, string title)
 			: base ()
 		{
 			AcceptsTab = true;
@@ -45,13 +45,10 @@ namespace IronPythonRepl
 
 			TextIter end = Buffer.EndIter;
 			// TODO
-			Buffer.InsertWithTagsByName (ref end,
-				"IronPython Shell, use 'acc' to call the selected AutomationElement, " +
-				"and type 'help()' for help.\nEnter statements or expressions below.\n",
-				"Comment");
+			Buffer.InsertWithTagsByName (ref end, title, "Comment");
 			ShowPrompt (true);
 
-			InitRuntime ();
+			InitRuntime (assembliesToLoad, initScript);
 		}
 
 		public void SetVariable (string varName, object varValue)
@@ -69,25 +66,15 @@ namespace IronPythonRepl
 			return width;
 		}
 
-		private void InitRuntime ()
+		private void InitRuntime (Assembly[] assembliesToLoad, string initScript)
 		{
 			engine = Python.CreateEngine ();
 			scope = engine.CreateScope ();
 			engine.Runtime.IO.SetOutput (new GuiStream ("Stdout", (x, y) => Output (x, y)), Encoding.UTF8);
 			engine.Runtime.IO.SetErrorOutput (new GuiStream ("Error", (x, y) => Output (x, y)), Encoding.UTF8);
-			engine.Runtime.LoadAssembly (Assembly.Load ("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
-			engine.Runtime.LoadAssembly (Assembly.Load ("WindowsBase, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"));
-			engine.Runtime.LoadAssembly (Assembly.Load ("UIAutomationClient, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"));
-			engine.Runtime.LoadAssembly (Assembly.Load ("UIAutomationTypes, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"));
-			StringBuilder imports = new StringBuilder ();
-			// TODO write init script into a resource file
-			imports.AppendLine ("from System import *");
-			imports.AppendLine ("from System.Collections.Generic import *");
-			imports.AppendLine ("from System.Windows import *");
-			imports.AppendLine ("from System.Windows.Automation import *");
-			imports.AppendLine ("from System.Linq import *");
-			imports.AppendLine ("def help() : print 'press Ctrl+J to invoke auto-completion'");
-			ScriptSource source = engine.CreateScriptSourceFromString (imports.ToString (), SourceCodeKind.Statements);
+			foreach (var assembly in assembliesToLoad)
+				engine.Runtime.LoadAssembly (assembly);
+			ScriptSource source = engine.CreateScriptSourceFromString (initScript, SourceCodeKind.Statements);
 			source.Execute (scope);
 		}
 

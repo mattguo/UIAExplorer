@@ -134,6 +134,7 @@
     <EmbeddedResource Include="Icons\ControlType\window.png" />
     <EmbeddedResource Include="Icons\ControlType\group.png" />
     <EmbeddedResource Include="Icons\ControlType\custom.png" />
+    <EmbeddedResource Include="InitScript.py" />
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>
