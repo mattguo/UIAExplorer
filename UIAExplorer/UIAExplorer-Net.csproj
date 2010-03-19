@@ -91,6 +91,7 @@
     <Compile Include="Discriptors\ParameterDescriptor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="InitScript.py" />
     <Content Include="Tasks.txt" />
   </ItemGroup>
   <ItemGroup>
