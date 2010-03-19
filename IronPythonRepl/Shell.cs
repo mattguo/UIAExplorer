@@ -20,8 +20,8 @@ namespace IronPythonRepl
 	// TODO no colorize, completion and indent in """ string
 	public class Shell : TextView
 	{
-		public const string Prompt = "Py> ";
-		public const string IndentString = "\t";
+		private const string Prompt = "Py> ";
+		private const string IndentString = "\t";
 
 		private ScriptEngine engine = null;
 		private ScriptScope scope = null;
@@ -59,6 +59,7 @@ namespace IronPythonRepl
 		private int GetStringWidth (string str)
 		{
 			int width, height;
+			
 			Pango.Layout layout = new Pango.Layout (this.PangoContext);
 			layout.SetText (str);
 			layout.GetPixelSize (out width, out height);
@@ -113,15 +114,6 @@ namespace IronPythonRepl
 				Foreground = "darkgreen"
 			};
 			Buffer.TagTable.Add (comment);
-		}
-
-		private enum ScriptEndState
-		{
-			Nommal,
-			EndWithColon,
-			CommentJustFinish,
-			InCommentBlock,
-			EmptyLine
 		}
 
 		private bool CalcIndent (string script, out string indent)
