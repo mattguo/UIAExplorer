@@ -187,11 +187,50 @@ namespace IronPythonRepl
 
 		private string [] GetCompletions (string line, out int prefixLen, out int defaultIndex)
 		{
+			//TODO THe following is still a simple while buggy implementation
+			int lineIndex = line.Length - 1;
+			for (; lineIndex >= 0; lineIndex--) {
+				char ch = line[lineIndex] ;
+				if (!(ch == '.' || ch == '_' || (ch >= 'a' && ch <= 'z') ||
+					(ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')))
+					break;
+			}
+			lineIndex++;
 
-			//TODO implement
-			prefixLen = 2;
-			defaultIndex = 5;
-			return new string [] { "aaa", "bbb", "ccc", "aaa", "bbb", "ccc", "aaa", "bbb", "cccasdasdasdasdsadsadsadasdasdasdas" };
+			string prefix = line.Substring (lineIndex, line.Length - lineIndex);
+			int lastDotIndex = prefix.LastIndexOf ('.');
+			string prefixObject;
+			string prefixMember;
+			if (lastDotIndex != -1) {
+				prefixObject = line.Substring (0, lastDotIndex);
+				prefixMember = line.Substring (lastDotIndex + 1, prefix.Length - lastDotIndex -1);
+			}
+			else {
+				prefixObject = "";
+				prefixMember = prefix;
+			}
+			prefixLen = prefixMember.Length;
+
+			string [] completions = null;
+			defaultIndex = 0;
+			var source = engine.CreateScriptSourceFromString (
+				string.Format ("dir({0})", prefixObject), SourceCodeKind.Expression);
+			try {
+				var dirResult = (IronPython.Runtime.List) source.Execute (scope);
+				List <string> completionList = new List<string>();
+				for (int i = 0; i < dirResult.Count; i++)
+					completionList.Add (dirResult[i].ToString ());
+				completionList.Sort (StringComparer.InvariantCultureIgnoreCase);
+				defaultIndex = completionList.BinarySearch (prefixMember, StringComparer.InvariantCultureIgnoreCase);
+				if (defaultIndex < 0)
+					defaultIndex = -defaultIndex;
+				if (defaultIndex >= completionList.Count)
+					defaultIndex = completionList.Count - 1;
+				completions = completionList.ToArray ();
+			} catch (Exception) {
+			}
+
+			return completions;
 		}
 
 		protected override bool OnKeyPressEvent (Gdk.EventKey evnt)
@@ -235,43 +274,17 @@ namespace IronPythonRepl
 					}
 					return true;
 
+				case Gdk.Key.period:
+					TextIter end = Buffer.EndIter;
+					Buffer.Insert (ref end, ".");
+					ShowCompletionWindow ();
+					return true;
 				case Gdk.Key.j:
 				case Gdk.Key.J:
 					// Press Ctrl+J to invoke auto-completion
 					if ((evnt.State & Gdk.ModifierType.ControlMask) != Gdk.ModifierType.ControlMask)
 						break;
-
-					int prefixLen;
-					int defaultIndex;
-					string [] completions = GetCompletions (LineUntilCursor, out prefixLen, out defaultIndex);
-					if (completions == null)
-						return true;
-
-					TextIter insertPos = Cursor;
-					insertPos.LineIndex -= prefixLen;
-
-					if (completions.Length == 1) {
-						TextIter cursor = Cursor;
-						Buffer.Delete (ref insertPos, ref cursor);
-						Buffer.Insert (ref insertPos, completions [0]);
-						return true;
-					}
-					
-					// Show completion window
-					int x, y;
-					GdkWindow.GetOrigin (out x, out y);
-					var r = GetIterLocation (Cursor);
-					x += r.X;
-					y += r.Y;
-					var w = new CompletionWindow (completions, 5);
-					w.Move (x, y);
-					w.ShowAll ();
-					w.SelectCompletion += (choice) => {
-						TextIter cursor = Cursor;
-						Buffer.Delete (ref insertPos, ref cursor);
-						Buffer.Insert (ref insertPos, choice);
-					};
-
+					ShowCompletionWindow ();
 					return true;
 
 				default:
@@ -279,6 +292,39 @@ namespace IronPythonRepl
 			}
 
 			return base.OnKeyPressEvent (evnt);
+		}
+
+		private void ShowCompletionWindow ()
+		{
+			int prefixLen;
+			int defaultIndex;
+			string [] completions = GetCompletions (LineUntilCursor, out prefixLen, out defaultIndex);
+			if (completions == null)
+				return;
+
+			TextIter insertPos = Cursor;
+			insertPos.BackwardChars (prefixLen);
+
+			if (completions.Length == 1) {
+				TextIter cursor = Cursor;
+				Buffer.Delete (ref insertPos, ref cursor);
+				Buffer.Insert (ref insertPos, completions [0]);
+				return;
+			}
+
+			int x, y;
+			GdkWindow.GetOrigin (out x, out y);
+			var r = GetIterLocation (Cursor);
+			x += r.X;
+			y += r.Y;
+			var w = new CompletionWindow (completions, defaultIndex);
+			w.Move (x, y);
+			w.ShowAll ();
+			w.SelectCompletion += (choice) => {
+				TextIter cursor = Cursor;
+				Buffer.Delete (ref insertPos, ref cursor);
+				Buffer.Insert (ref insertPos, choice);
+			};
 		}
 
 		private void ShowPrompt (bool newline)
@@ -291,27 +337,11 @@ namespace IronPythonRepl
 			endOfLastProcessing = Buffer.CreateMark (null, Buffer.EndIter, true);
 			
 			TextIter promptBegin = InputLineBegin;
-			promptBegin.LineIndex -= Prompt.Length;
+			promptBegin.BackwardChars (Prompt.Length);
 			
 			Buffer.ApplyTag (Buffer.TagTable.Lookup ("Prompt"),
 				promptBegin, InputLineBegin);
 			Buffer.ApplyTag (Buffer.TagTable.Lookup ("Freezer"), Buffer.StartIter, InputLineBegin);
-			
-
-			//for (int i = 0; i < indent; i++)
-			//    Buffer.Insert (ref end_iter, IndentString);
-
-			//Buffer.PlaceCursor (Buffer.EndIter);
-			//ScrollMarkOnscreen (Buffer.InsertMark);
-
-			//TextIter prompt_start_iter = InputLineBegin;
-			//prompt_start_iter.LineIndex -= prompt.Length;
-
-			//TextIter prompt_end_iter = InputLineBegin;
-			////prompt_end_iter.LineIndex -= 1;
-
-			//Buffer.ApplyTag (Buffer.TagTable.Lookup (indent > 0 ? "PromptContinuation" : "Prompt"),
-			//        prompt_start_iter, prompt_end_iter);
 		}
 
 		private void Output (string kind, string s)

@@ -8,7 +8,6 @@ namespace IronPythonRepl
 	public delegate void SelectCompletionHandler (string completion);
 	public class CompletionWindow : Window
 	{
-		private string [] choices;
 		private TreeView choiceList;
 		private ListStore listStore;
 
@@ -38,7 +37,9 @@ namespace IronPythonRepl
 				iter = listStore.AppendValues (choice);
 			// TODO auto calculate size
 			this.SetSizeRequest (220, 180);
-			choiceList.Selection.SelectPath (new TreePath (new int [] { defaultIndex }));
+			var pathToSelect = new TreePath (new int [] { defaultIndex });
+			choiceList.Selection.SelectPath (pathToSelect);
+			choiceList.ScrollToCell (pathToSelect, col, false, 0, 0);
 			Focus = choiceList;
 		}
 
