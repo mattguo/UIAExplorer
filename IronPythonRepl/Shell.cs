@@ -253,11 +253,12 @@ namespace IronPythonRepl
 					}
 					return true;
 
-				case Gdk.Key.period:
-					TextIter end = Buffer.EndIter;
-					Buffer.Insert (ref end, ".");
-					ShowCompletionWindow ();
-					return true;
+				// TODO disable implicit ShowCompletionWindow for now.
+				//case Gdk.Key.period:
+				//    TextIter end = Buffer.EndIter;
+				//    Buffer.Insert (ref end, ".");
+				//    ShowCompletionWindow ();
+				//    return true;
 				case Gdk.Key.j:
 				case Gdk.Key.J:
 					// Press Ctrl+J to invoke auto-completion
