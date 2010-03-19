@@ -185,11 +185,12 @@ namespace IronPythonRepl
 			}
 		}
 
-		private string [] GetCompletions (string line, out string prefix)
+		private string [] GetCompletions (string line, out int prefixLen, out int defaultIndex)
 		{
 
 			//TODO implement
-			prefix = LineUntilCursor;
+			prefixLen = 2;
+			defaultIndex = 5;
 			return new string [] { "aaa", "bbb", "ccc", "aaa", "bbb", "ccc", "aaa", "bbb", "cccasdasdasdasdsadsadsadasdasdasdas" };
 		}
 
@@ -240,26 +241,23 @@ namespace IronPythonRepl
 					if ((evnt.State & Gdk.ModifierType.ControlMask) != Gdk.ModifierType.ControlMask)
 						break;
 
-					string prefix;
-					string [] completions = GetCompletions (LineUntilCursor, out prefix);
+					int prefixLen;
+					int defaultIndex;
+					string [] completions = GetCompletions (LineUntilCursor, out prefixLen, out defaultIndex);
 					if (completions == null)
 						return true;
 
+					TextIter insertPos = Cursor;
+					insertPos.LineIndex -= prefixLen;
+
 					if (completions.Length == 1) {
 						TextIter cursor = Cursor;
-						Buffer.Insert (ref cursor, completions [0]);
+						Buffer.Delete (ref insertPos, ref cursor);
+						Buffer.Insert (ref insertPos, completions [0]);
 						return true;
 					}
-
-					//?????
-					Console.WriteLine ();
-					foreach (var s in completions) {
-						Console.Write (prefix);
-						Console.Write (s);
-						Console.Write (" ");
-					}
-					// TODO Show prompt
-
+					
+					// Show completion window
 					int x, y;
 					GdkWindow.GetOrigin (out x, out y);
 					var r = GetIterLocation (Cursor);
@@ -268,8 +266,11 @@ namespace IronPythonRepl
 					var w = new CompletionWindow (completions, 5);
 					w.Move (x, y);
 					w.ShowAll ();
-
-					//Gtk.Grab.Add (w);
+					w.SelectCompletion += (choice) => {
+						TextIter cursor = Cursor;
+						Buffer.Delete (ref insertPos, ref cursor);
+						Buffer.Insert (ref insertPos, choice);
+					};
 
 					return true;
 
