@@ -17,18 +17,15 @@ namespace IronPythonRepl
 	// TODO color format current line
 	// TODO Auto completion
 	// TODO make the init title and script configurable, i.e. settable.
+	// TODO no colorize, completion and indent in """ string
 	public class Shell : TextView
 	{
-		public const string PromptPrefix = "Py";
-		public const string Prompt = PromptPrefix + ">>>";
-		public const string ContinuationPrompt = PromptPrefix + "...";
+		public const string Prompt = "Py> ";
 		public const string IndentString = "\t";
 
 		private ScriptEngine engine = null;
 		private ScriptScope scope = null;
 		private HistoryManager history = new HistoryManager ();
-		private StringBuilder expr = new StringBuilder ();
-		private int currentIndent = 0;
 		private TextMark endOfLastProcessing;
 
 		public Shell ()
@@ -102,7 +99,7 @@ namespace IronPythonRepl
 			Buffer.TagTable.Add (freeze_tag);
 
 			TextTag prompt_tag = new TextTag ("Prompt") {
-				Foreground = "blue",
+				Foreground = "orange",
 				//Background = "#f8f8f8",
 				Weight = Pango.Weight.Bold
 			};
@@ -121,60 +118,79 @@ namespace IronPythonRepl
 			Buffer.TagTable.Add (error_tag);
 
 			TextTag stdout_tag = new TextTag ("Stdout") {
-				Foreground = "#006600"
+				Foreground = "blue"
 			};
 			Buffer.TagTable.Add (stdout_tag);
 
 			TextTag comment = new TextTag ("Comment") {
-				Foreground = "#3f7f5f"
+				Foreground = "darkgreen"
 			};
 			Buffer.TagTable.Add (comment);
+		}
+
+		private enum ScriptEndState
+		{
+			Nommal,
+			EndWithColon,
+			CommentJustFinish,
+			InCommentBlock,
+			EmptyLine
+		}
+
+		private bool CalcIndent (string script, out string indent)
+		{
+			indent = "";
+			if (string.IsNullOrEmpty (script))
+				return false;
+			if (script [0] == ' ' || script [0] == '\t') {
+				ShowError (Environment.NewLine + "unexpected indent, ");
+				return false;
+			}
+
+			int lastEol = script.LastIndexOfAny (new char [] { '\n', '\r' });
+			string lastLine = script.Substring (lastEol + 1);
+			string trimmedLastLine = lastLine.TrimStart (' ', '\t');
+			string lastIndent = lastLine.Substring (0, lastLine.Length - trimmedLastLine.Length);
+			trimmedLastLine = trimmedLastLine.TrimEnd (' ', '\t');
+
+			if (string.IsNullOrEmpty (trimmedLastLine))
+				return false;
+			else {
+				indent = lastIndent;
+				if (trimmedLastLine.EndsWith (":"))
+					indent += IndentString;
+				return indent.Length > 0;
+			}
 		}
 
 		private void InputScript ()
 		{
 			string script = InputLine;
-			bool isEmptyLine = string.IsNullOrEmpty (script.Trim ());
-			bool endsWithColon = script.EndsWith (":");
-			expr.AppendLine (script);
-			// Insert a new line before we evaluate.
+			string indent;
+			bool continuation = CalcIndent (script, out indent);
+			
 			TextIter end = Buffer.EndIter;
-			Buffer.InsertWithTagsByName (ref end, "\n", "Stdout");
-			bool continuation = endsWithColon || (currentIndent > 0 && !isEmptyLine);
-			if (!continuation) {
-				var source = engine.CreateScriptSourceFromString (expr.ToString (), SourceCodeKind.InteractiveCode);
+			if (continuation) {
+				Buffer.Insert (ref end, Environment.NewLine + indent);
+			} else {
+				Buffer.InsertWithTagsByName (ref end, Environment.NewLine, "Stdout");
+				var source = engine.CreateScriptSourceFromString (script, SourceCodeKind.InteractiveCode);
 				try {
 					source.Execute (scope);
 				} catch (Exception e) {
 					ShowError (e.Message + Environment.NewLine);
 				}
-				expr.Remove (0, expr.Length);
-				currentIndent = 0;
 				ShowPrompt (false);
-			} else {
-				currentIndent = 0;
-				int indentStringLen = IndentString.Length;
-				while (true) {
-					int checkPos = currentIndent * indentStringLen;
-					if (script.Substring (checkPos, indentStringLen) == IndentString)
-						currentIndent ++;
-					else
-						break;
-				}
-				if (endsWithColon)
-					currentIndent++;
-				ShowPrompt (false, currentIndent);
-			}
-			if (!isEmptyLine) {
 				history.AppendHistory (script);
 			}
 		}
 
-		private string [] GetCompletions (string LineUntilCursor, out string prefix)
+		private string [] GetCompletions (string line, out string prefix)
 		{
+
 			//TODO implement
 			prefix = LineUntilCursor;
-			return new string [] { "aaa", "bbb", "ccc" };
+			return new string [] { "aaa", "bbb", "ccc", "aaa", "bbb", "ccc", "aaa", "bbb", "cccasdasdasdasdsadsadsadasdasdasdas" };
 		}
 
 		protected override bool OnKeyPressEvent (Gdk.EventKey evnt)
@@ -190,20 +206,25 @@ namespace IronPythonRepl
 					InputScript ();
 					return true;
 
-				case Gdk.Key.Up:
+				case Gdk.Key.Page_Up:
 					history.HistoryUp ();
 					InputLine = history.Current;
 					return true;
 
-				case Gdk.Key.Down:
+				case Gdk.Key.Page_Down:
 					history.HistoryDown ();
 					InputLine = history.Current;
 					return true;
 
 				case Gdk.Key.Left:
-					if (Cursor.Compare (InputLineBegin) <= 0) {
+					if (Cursor.Compare (InputLineBegin) <= 0)
 						return true;
-					}
+					break;
+
+				case Gdk.Key.Up:
+					var lineUntilCursor = LineUntilCursor;
+					if (lineUntilCursor.IndexOfAny (new char [] { '\r', '\n' }) == -1)
+						return true;
 					break;
 
 				case Gdk.Key.Home:
@@ -213,12 +234,12 @@ namespace IronPythonRepl
 					}
 					return true;
 
+				case Gdk.Key.j:
 				case Gdk.Key.J:
 					// Press Ctrl+J to invoke auto-completion
 					if ((evnt.State & Gdk.ModifierType.ControlMask) != Gdk.ModifierType.ControlMask)
 						break;
 
-					string saved_text = InputLine;
 					string prefix;
 					string [] completions = GetCompletions (LineUntilCursor, out prefix);
 					if (completions == null)
@@ -238,24 +259,18 @@ namespace IronPythonRepl
 						Console.Write (" ");
 					}
 					// TODO Show prompt
-#if false
-				Gtk.TextIter start = Cursor;
-				if (prefix.Length != 0)
-					MoveVisually (ref start, -prefix.Length);
-				int x, y;
-				GdkWindow.GetOrigin (out x, out y);
-				var r = GetIterLocation (start);
-				x += r.X;
-				y += r.Y;
-				var w = new Gtk.Window (WindowType.Popup);
-				w.SetUposition (x, y);
-				w.SetUsize (100, 100);
-				foreach (var s in completions){
-					Console.WriteLine ("{0}[{1}]", prefix, s);
-				}
-				w.ShowAll ();
-				Console.WriteLine ("Position: x={0} y={1}", x + r.X, y +r.Y);
-#endif
+
+					int x, y;
+					GdkWindow.GetOrigin (out x, out y);
+					var r = GetIterLocation (Cursor);
+					x += r.X;
+					y += r.Y;
+					var w = new CompletionWindow (completions, 5);
+					w.Move (x, y);
+					w.ShowAll ();
+
+					//Gtk.Grab.Add (w);
+
 					return true;
 
 				default:
@@ -267,36 +282,35 @@ namespace IronPythonRepl
 
 		private void ShowPrompt (bool newline)
 		{
-			ShowPrompt (newline, 0);
-		}
-
-		private void ShowPrompt (bool newline, int indent)
-		{
 			TextIter end_iter = Buffer.EndIter;
 
-			if (newline) {
-				Buffer.Insert (ref end_iter, "\n");
-			}
-			string prompt = indent > 0 ? ContinuationPrompt : Prompt;
-			Buffer.Insert (ref end_iter, prompt);
-
+			if (newline)
+				Buffer.Insert (ref end_iter, Environment.NewLine);
+			Buffer.Insert (ref end_iter, Prompt);
 			endOfLastProcessing = Buffer.CreateMark (null, Buffer.EndIter, true);
+			
+			TextIter promptBegin = InputLineBegin;
+			promptBegin.LineIndex -= Prompt.Length;
+			
+			Buffer.ApplyTag (Buffer.TagTable.Lookup ("Prompt"),
+				promptBegin, InputLineBegin);
 			Buffer.ApplyTag (Buffer.TagTable.Lookup ("Freezer"), Buffer.StartIter, InputLineBegin);
+			
 
-			for (int i = 0; i < indent; i++)
-				Buffer.Insert (ref end_iter, IndentString);
+			//for (int i = 0; i < indent; i++)
+			//    Buffer.Insert (ref end_iter, IndentString);
 
-			Buffer.PlaceCursor (Buffer.EndIter);
-			ScrollMarkOnscreen (Buffer.InsertMark);
+			//Buffer.PlaceCursor (Buffer.EndIter);
+			//ScrollMarkOnscreen (Buffer.InsertMark);
 
-			TextIter prompt_start_iter = InputLineBegin;
-			prompt_start_iter.LineIndex -= prompt.Length;
+			//TextIter prompt_start_iter = InputLineBegin;
+			//prompt_start_iter.LineIndex -= prompt.Length;
 
-			TextIter prompt_end_iter = InputLineBegin;
-			//prompt_end_iter.LineIndex -= 1;
+			//TextIter prompt_end_iter = InputLineBegin;
+			////prompt_end_iter.LineIndex -= 1;
 
-			Buffer.ApplyTag (Buffer.TagTable.Lookup (indent > 0 ? "PromptContinuation" : "Prompt"),
-					prompt_start_iter, prompt_end_iter);
+			//Buffer.ApplyTag (Buffer.TagTable.Lookup (indent > 0 ? "PromptContinuation" : "Prompt"),
+			//        prompt_start_iter, prompt_end_iter);
 		}
 
 		private void Output (string kind, string s)

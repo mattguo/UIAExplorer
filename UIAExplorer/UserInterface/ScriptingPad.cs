@@ -51,7 +51,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 
 		public string Title
 		{
-			get { return "Script"; }
+			get { return "Ipy Script"; }
 		}
 
 		#endregion
