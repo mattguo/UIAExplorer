@@ -18,6 +18,14 @@ namespace ReplOverMdEditor
 			
 			scroll.Add (shell);
 			box.PackStart (scroll, true, true, 0);
+
+			Button clearBtn = new Button ();
+			clearBtn.Label = "Clear";
+			clearBtn.Clicked += delegate {
+				shell.ClearText ();
+				Focus = shell;
+			};
+			box.PackStart (clearBtn, false, false, 0);
 			Add (box);
 			Show ();
 			Focus = shell;

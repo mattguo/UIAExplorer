@@ -81,6 +81,7 @@ namespace ReplOverMdEditor
 			Editor.Caret.Offset = Editor.Document.Length;
 			if (Editor.Caret.Column != 0)
 				InsertNewLine ();
+			Editor.Document.RemoveMarker (EditStartLine - 1, typeof (SeparatorMarker));
 			Editor.Document.AddMarker (Editor.Caret.Line - 1, sectionLine);
 			ClearUndoRedo ();
 			Editor.Document.SetNotDirtyState ();

@@ -40,6 +40,12 @@ namespace ReplOverMdEditor
 			repl.StartNewInput ();
 		}
 
+		public void ClearText ()
+		{
+			Remove (0, Document.Length);
+			repl.StartNewInput ();
+		}
+
 		private void Output (string str, OutputTextMarker marker)
 		{
 			int startLine = Caret.Line;
