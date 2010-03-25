@@ -8,21 +8,12 @@ using Microsoft.Scripting;
 
 namespace ReplOverMdEditor
 {
-	class Shell : TextEditor
+	public class DlrShell : ReplShellBase
 	{
-		protected ReplEditMode repl;
-
-		public Shell ()
+		public DlrShell (string mimeType, bool redirectStdout, bool redirectStderr)
+			: base (redirectStdout, redirectStderr)
 		{
-			Document.MimeType = "text/x-python";
-			var options = GetTextEditorData ().Options;
-			options.ShowLineNumberMargin = false;
-			options.ShowFoldMargin = true;
-			options.ShowTabs = true;
-			options.ShowIconMargin = true;
-			options.ShowSpaces = true;
-			options.AutoIndent = false;
-			options.IndentationSize = 4;
+			Document.MimeType = mimeType;
 		}
 
 		public void InitRuntime (ScriptEngine engine, Assembly [] assembliesToLoad, string initScript)
@@ -34,35 +25,8 @@ namespace ReplOverMdEditor
 			foreach (var assembly in assembliesToLoad)
 				engine.Runtime.LoadAssembly (assembly);
 			RunScript (initScript, SourceCodeKind.Statements);
-			repl = new ReplEditMode (this);
-			CurrentMode = repl;
 			repl.NewLines += new NewLinesHandler (repl_NewLines);
 			repl.StartNewInput ();
-		}
-
-		public void ClearText ()
-		{
-			Remove (0, Document.Length);
-			repl.StartNewInput ();
-		}
-
-		private void Output (string str, OutputTextMarker marker)
-		{
-			int startLine = Caret.Line;
-			InsertAtCaret (str);
-			for (int i = startLine; i <= Caret.Line; i++)
-				stagedMarkers [i] = marker;
-		}
-
-		private void Info (string str)
-		{
-			Output (str, OutputTextMarker.Info);
-			Console.Write (str);
-		}
-
-		private void Error (string str)
-		{
-			Output (str, OutputTextMarker.Error);
 		}
 
 		void repl_NewLines (ReplEditMode sender, int startLine, int lineCount)
@@ -75,31 +39,32 @@ namespace ReplOverMdEditor
 				var lastLine1 = Document.GetLine (Caret.Line);
 				var text1 = Document.GetTextAt (lastLine1.Offset, lastLine1.EditableLength).TrimEnd ();
 				if (!text2.EndsWith (":") && !text2.StartsWith ("\t")) {
-					RunScript (repl.Script, SourceCodeKind.InteractiveCode);
+					var script = repl.Script.TrimEnd ();
+					RunScript (script, SourceCodeKind.InteractiveCode);
+					repl.AppendHistory (script);
 					repl.StartNewInput ();
 				}
 			}
 		}
 
-		private void RunScript (string script, SourceCodeKind srcKind)
+		private bool RunScript (string script, SourceCodeKind srcKind)
 		{
 			var source = engine.CreateScriptSourceFromString (script, srcKind);
+			bool isSuccessful = false;
 			try {
 				source.Execute (scope);
+				isSuccessful = true;
 			} catch (Exception e) {
 				Error (e.Message);
 			}
-			foreach (var pair in stagedMarkers)
-				Document.AddMarker (pair.Key, pair.Value);
-			stagedMarkers.Clear ();
+			ApplyPendingMarkers ();
+			return isSuccessful;
 		}
 
 		#region Fields
 
 		private ScriptEngine engine = null;
 		private ScriptScope scope = null;
-		private Dictionary<int, OutputTextMarker> stagedMarkers = new Dictionary<int,OutputTextMarker>();
-		// TODO private HistoryManager history = new HistoryManager ();
 
 		#endregion
 	}

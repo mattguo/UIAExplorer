@@ -5,7 +5,7 @@ using Mono.TextEditor;
 
 namespace ReplOverMdEditor
 {
-	class OutputTextMarker : TextMarker
+	public class OutputTextMarker : TextMarker
 	{
 		public static OutputTextMarker Error = new OutputTextMarker (new Gdk.Color (255, 0, 0));
 		public static OutputTextMarker Log = new OutputTextMarker (new Gdk.Color (0, 127, 0));

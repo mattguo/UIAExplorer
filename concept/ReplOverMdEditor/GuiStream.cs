@@ -6,9 +6,8 @@ using System.Runtime.InteropServices;
 
 namespace ReplOverMdEditor
 {
-	class GuiStream : Stream
+	public class GuiStream : Stream
 	{
-		string kind;
 		Action<string> callback;
 
 		public GuiStream (Action<string> cb)

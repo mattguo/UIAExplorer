@@ -67,6 +67,7 @@ namespace ReplOverMdEditor
 		public ReplEditMode (TextEditor editor)
 		{
 			this.Editor = editor;
+			this.EditStartLine = 0;
 			editor.GetTextEditorData ().Paste += ReplEditMode_Paste;
 		}
 
@@ -76,16 +77,31 @@ namespace ReplOverMdEditor
 				Data.Paste -= ReplEditMode_Paste;
 		}
 
+		public void ClearText ()
+		{
+			// TODO dont know why
+			// "setting Text to "" and EditStartLine to 0" will crash the editor.
+			// Maybe a Mono.TextEditor bug.
+			Editor.Document.Text = "\n";
+			Editor.Caret.Offset = Editor.Document.Length;
+			EditStartLine = 1;
+			ClearUndoRedo ();
+			Editor.Document.SetNotDirtyState ();
+			RepaintPrompts ();
+		}
+
 		public void StartNewInput ()
 		{
 			Editor.Caret.Offset = Editor.Document.Length;
 			if (Editor.Caret.Column != 0)
 				InsertNewLine ();
-			Editor.Document.RemoveMarker (EditStartLine - 1, typeof (SeparatorMarker));
-			Editor.Document.AddMarker (Editor.Caret.Line - 1, sectionLine);
+			if (EditStartLine > 0)
+				Editor.Document.RemoveMarker (EditStartLine - 1, typeof (SeparatorMarker));
+			EditStartLine = Editor.Caret.Line;
+			if (EditStartLine > 0)
+				Editor.Document.AddMarker (EditStartLine - 1, sectionLine);
 			ClearUndoRedo ();
 			Editor.Document.SetNotDirtyState ();
-			EditStartLine = Editor.Caret.Line;
 			RepaintPrompts ();
 		}
 
@@ -117,6 +133,11 @@ namespace ReplOverMdEditor
 				doc.AddMarker (lineNo, marker);
 		}
 
+		public void AppendHistory (string cmd)
+		{
+			history.AppendHistory (cmd);
+		}
+
 		public int EditStartOffset
 		{
 			get
@@ -130,6 +151,13 @@ namespace ReplOverMdEditor
 			get
 			{
 				return Editor.Document.GetTextBetween (EditStartOffset, Editor.Document.Length);
+			}
+			set
+			{
+				var startOffset = EditStartOffset;
+				Editor.Replace (startOffset, Editor.Document.Length - startOffset, value);
+				Editor.Caret.Offset = Editor.Document.Length;
+				RepaintPrompts ();
 			}
 		}
 
@@ -158,6 +186,19 @@ namespace ReplOverMdEditor
 				(SelectionAreaType == SelectionAreaType.Empty && Data.Caret.Offset >= EditStartOffset);
 
 			int keyCode = GetKeyCode (key, modifier);
+
+			if (keyCode == GetKeyCode (Gdk.Key.Page_Up)) {
+				history.HistoryUp ();
+				Script = history.Current;
+				return;
+			}
+
+			if (keyCode == GetKeyCode (Gdk.Key.Page_Down)) {
+				history.HistoryDown ();
+				Script = history.Current;
+				return;
+			}
+
 			int keyCode2 = GetKeyCode (GetPairCaseKey (key), modifier);
 			
 			bool caretJustBeforeReadolyArea = !Data.IsSomethingSelected && Caret.Offset == EditStartOffset;
@@ -230,7 +271,8 @@ namespace ReplOverMdEditor
 			((Stack<Document.UndoOperation>) redoStackFieldInfo.GetValue (Editor.Document)).Clear ();
 		}
 
-		private TextMarker sectionLine = new SeparatorMarker ();//UnderlineMarker (new Gdk.Color (0, 0, 63), 0, 20);
+		private TextMarker sectionLine = new SeparatorMarker ();
+		private HistoryManager history = new HistoryManager ();
 
 		#endregion
 	}
