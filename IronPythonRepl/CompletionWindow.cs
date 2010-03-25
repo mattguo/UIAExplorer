@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Gtk;
 using System.Text;
@@ -56,6 +56,9 @@ namespace IronPythonRepl
 					Close ();
 					return true;
 				case Gdk.Key.Escape:
+					Close ();
+					break;
+				case Gdk.Key.period:
 					Close ();
 					break;
 			}

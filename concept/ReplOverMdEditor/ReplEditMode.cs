@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Mono.TextEditor;
@@ -229,7 +229,7 @@ namespace ReplOverMdEditor
 			((Stack<Document.UndoOperation>) redoStackFieldInfo.GetValue (Editor.Document)).Clear ();
 		}
 
-		private TextMarker sectionLine = new UnderlineMarker (new Gdk.Color (0, 0, 63), -1, -1);
+		private TextMarker sectionLine = new SeparatorMarker ();//UnderlineMarker (new Gdk.Color (0, 0, 63), 0, 20);
 
 		#endregion
 	}

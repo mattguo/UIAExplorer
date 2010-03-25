@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Mono.TextEditor;
@@ -22,6 +22,7 @@ namespace ReplOverMdEditor
 			options.ShowIconMargin = true;
 			options.ShowSpaces = true;
 			options.AutoIndent = false;
+			options.IndentationSize = 4;
 		}
 
 		public void InitRuntime (ScriptEngine engine, Assembly [] assembliesToLoad, string initScript)

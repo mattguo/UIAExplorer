@@ -162,6 +162,7 @@ namespace IronPythonRepl
 				ShowPrompt (false);
 				history.AppendHistory (script);
 			}
+			ScrollToIter (Buffer.EndIter, 0, false, 0, 0);
 		}
 
 		private string [] GetCompletions (string line, out int prefixLen, out int defaultIndex)
@@ -370,6 +371,12 @@ namespace IronPythonRepl
 			{
 				return Buffer.GetText (InputLineBegin, Cursor, false);
 			}
+		}
+
+		public void ClearText ()
+		{
+			Buffer.Clear ();
+			ShowPrompt (false);
 		}
 	}
 

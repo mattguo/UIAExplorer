@@ -56,7 +56,15 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 			scriptStream.Dispose ();
 
 			ipyShell = new IronPythonRepl.Shell (assemblies, initScript, title);
-			box.PackStart (ipyShell, true, true, 0);
+			ScrolledWindow scroll = new ScrolledWindow ();
+			scroll.Add (ipyShell);
+			box.PackStart (scroll, true, true, 0);
+			Button clearTextBtn = new Button ();
+			clearTextBtn.Label = "Clear Text";
+			clearTextBtn.Clicked += delegate {
+				ipyShell.ClearText ();
+			};
+			box.PackStart (clearTextBtn, false, false, 0);
 			box.ShowAll ();
 		}
 
