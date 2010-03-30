@@ -6,26 +6,35 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 	{
 		public static void Error (string format, params object[] args)
 		{
-			RunModalDialog (Gtk.MessageType.Error, format, args);
+			RunModalDialog ("Error", format, args);
 		}
 
 		public static void Warn (string format, params object[] args)
 		{
-			RunModalDialog (Gtk.MessageType.Warning, format, args);
+			RunModalDialog ("Warning", format, args);
 		}
 
 		public static void Info (string format, params object[] args)
 		{
-			RunModalDialog (Gtk.MessageType.Info, format, args);
+			RunModalDialog ("Info", format, args);
 		}
 
-		private static void RunModalDialog (Gtk.MessageType type, string format, params object[] args)
+		private static void RunModalDialog (string title, string format, params object[] args)
 		{
-			Gtk.MessageDialog md =
-				new Gtk.MessageDialog (null, Gtk.DialogFlags.Modal | Gtk.DialogFlags.DestroyWithParent,
-					type, Gtk.ButtonsType.Ok, format, args);
-			md.Run ();
-			md.Destroy ();
+			Gtk.Dialog dlg = new Gtk.Dialog ("UIA Explorer - " + title, null,
+			                                 Gtk.DialogFlags.Modal | Gtk.DialogFlags.DestroyWithParent);
+			var text = new Gtk.TextView ();
+			if (args.Length > 0)
+				format = string.Format (format, args);
+			text.Buffer.Text = format;
+			var scroll = new Gtk.ScrolledWindow ();
+			scroll.Add (text);
+			dlg.AddButton ("Close", Gtk.ResponseType.Close);
+			dlg.VBox.PackStart (scroll, true, true, 0);
+			dlg.SetSizeRequest (500, 500);
+			scroll.ShowAll ();
+			dlg.Run ();
+			dlg.Destroy ();
 		}
 	}
 }

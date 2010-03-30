@@ -26,27 +26,29 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 
 		public override object GetValue (object component)
 		{
-            object val = ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property, true);
+			object val = ((AutomationElementDescriptor)component).Element.GetCurrentPropertyValue(property, true);
 
-            if (val == AutomationElement.NotSupported)
-                return "(not supported)";
-            if (val == null && property != AutomationElementIdentifiers.CultureProperty)
-            {
-                Log.Error("{0} shall never be null", property.ProgrammaticName);
-                return "(null)";
-            }
-            if (val.Equals(String.Empty))
-                return "(String.Empty)";
-            else if (val is ControlType)
-                return StringFormatter.Format((ControlType)val);
-            else if (val is AutomationElement)
-                return StringFormatter.Format((AutomationElement)val);
-            else if (val is Array)
-                return StringFormatter.Format((Array)val);
-            else if (property == AutomationElement.NativeWindowHandleProperty)
-                return string.Format("0x{0:X}", val);
-            else
-                return val.ToString();
+			if (val == AutomationElement.NotSupported)
+				return "(not supported)";
+			if (val == null &&
+			    property != AutomationElementIdentifiers.CultureProperty &&
+			    property != AutomationElementIdentifiers.ClickablePointProperty)
+			{
+				Log.Error("{0} shall never be null", property.ProgrammaticName);
+				return "(null)";
+			}
+			if (val.Equals(String.Empty))
+				return "(String.Empty)";
+			else if (val is ControlType)
+				return StringFormatter.Format((ControlType)val);
+			else if (val is AutomationElement)
+				return StringFormatter.Format((AutomationElement)val);
+			else if (val is Array)
+				return StringFormatter.Format((Array)val);
+			else if (property == AutomationElement.NativeWindowHandleProperty)
+				return string.Format("0x{0:X}", val);
+			else
+				return val.ToString();
 		}
 
 		public override bool IsReadOnly {

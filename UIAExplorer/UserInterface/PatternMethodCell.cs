@@ -86,10 +86,7 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 				if (ex is TargetInvocationException
 					&& ex.InnerException != null)
 					ex = ex.InnerException;
-				Message.Error ("{0}:{1}{2}",
-					ex.GetType().Name,
-					Environment.NewLine,
-					ex.Message);
+				Message.Error (ex.ToString());
 			}
 		}
 
