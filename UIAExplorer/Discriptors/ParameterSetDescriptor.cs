@@ -11,7 +11,7 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 		{
 			methodName = method.Name;
 			foreach (ParameterInfo para in method.GetParameters ()) {
-				parameters.Add (new ParameterDescriptor (para.Name, para.ParameterType, para.IsOut));
+				parameters.Add (new ParameterDescriptor (para.Name, para.ParameterType, !para.IsOut, para.ParameterType.IsByRef));
 			}
 		}
 

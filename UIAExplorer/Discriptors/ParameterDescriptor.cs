@@ -6,11 +6,12 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 {
 	public class ParameterDescriptor : PropertyDescriptor
 	{
-		public ParameterDescriptor (string name, Type type, bool isOut)
+		public ParameterDescriptor (string name, Type type, bool isIn, bool isOut)
 			: base (name, new Attribute [0])
 		{
 			this.ParameterName = name;
 			this.ParameterType = type;
+			this.IsIn = isIn;
 			this.IsOut = isOut;
 			this.ParameterValue = DefaultForType (type);
 		}
@@ -18,6 +19,7 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 		public string ParameterName { get; private set; }
 		public Type ParameterType { get; private set; }
 		public object ParameterValue { get; private set; }
+		public bool IsIn { get; private set; }
 		public bool IsOut { get; private set; }
 		
 		private static object DefaultForType(Type targetType)
@@ -32,13 +34,13 @@ namespace Mono.Accessibility.UIAExplorer.Discriptors
 		
 		public override bool IsReadOnly {
 			get {
-				return false;
+				return !IsIn;
 			}
 		}
 
 		public override bool IsBrowsable {
 			get {
-				return !IsOut;
+				return true;
 			}
 		}
 

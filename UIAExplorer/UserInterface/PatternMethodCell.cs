@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
 using MonoDevelop.Components.PropertyGrid;
@@ -77,9 +78,29 @@ namespace Mono.Accessibility.UIAExplorer.UserInterface
 					grid.CurrentObject = null;
 					dialog.Destroy ();
 					if (response == ResponseType.Ok) {
-						object [] parameterValues = parameterSet.Parameters.Select(p => p.ParameterValue).ToArray ();
-						// TODO output return value and out paras.
-						invoke.Method.Invoke (patternObj, parameterValues);
+						// TODO, replace this dictionary with a list<annonymous_struct {int, string}>
+						var outParams = new Dictionary<int, string> ();
+						var paraValuesList = new List<object> ();
+						for (int i = 0; i < parameterSet.Parameters.Count; i++) {
+							var para = parameterSet.Parameters [i];
+							if (para.IsOut)
+								outParams.Add (i, para.Name);
+							paraValuesList.Add (para.ParameterValue);
+						}
+						object [] paraValues = paraValuesList.ToArray ();
+
+						object retVal = invoke.Method.Invoke (patternObj, paraValues);
+						var sb = new System.Text.StringBuilder ();
+						if (retVal != null) {
+							sb.AppendFormat ("Return Value: {0}", retVal);
+							sb.AppendLine ();
+						}
+						foreach (var outParam in outParams) {
+							sb.AppendFormat ("{0}: {1}", outParam.Value, paraValues [outParam.Key]);
+							sb.AppendLine ();
+						}
+						if (sb.Length > 0)
+							Message.Info (sb.ToString ());
 					}
 				}
 			} catch (Exception ex) {
