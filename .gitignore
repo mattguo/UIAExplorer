@@ -3,5 +3,10 @@
 /UIAExplorer/obj
 /IronPythonRepl/bin
 /IronPythonRepl/obj
+/concept/ReplOverMdEditor/bin
+/concept/ReplOverMdEditor/obj
 *.pidb
 *~
+*.userprefs
+*.user
+layout.txt
